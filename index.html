@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safex - EMVEESS INFRAVENTURES PVT.LTD</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .custom-scroll::-webkit-scrollbar { display: none; }
+        @keyframes pulse-red {
+            0%, 100% { background-color: #ef4444; }
+            50% { background-color: #991b1b; }
+        }
+        .emergency-blink { animation: pulse-red 2s infinite; }
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .gallery-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .gallery-scroll-inner {
+            display: flex;
+            gap: 1rem;
+            animation: scroll-left 30s linear infinite;
+        }
+        .gallery-scroll-inner:hover {
+            animation-play-state: paused;
+        }
+        .gallery-card {
+            min-width: 200px;
+            flex-shrink: 0;
+        }
+
+        /* ===== THEME SYSTEM ===== */
+        :root {
+            --theme-bg: #f8fafc;
+            --theme-surface: #ffffff;
+            --theme-border: #e2e8f0;
+            --theme-text: #1e293b;
+            --theme-text-secondary: #64748b;
+            --theme-header-bg: #0f172a;
+            --theme-header-text: #ffffff;
+            --theme-footer-bg: #0f172a;
+            --theme-footer-text: #94a3b8;
+            --theme-card-bg: #ffffff;
+            --theme-accent: #10b981;
+            --theme-accent-hover: #059669;
+            --theme-muted: #f1f5f9;
+            --theme-shadow: rgba(0,0,0,0.08);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* 🌙 DARK MODE */
+        body.theme-dark {
+            --theme-bg: #0f172a;
+            --theme-surface: #1e293b;
+            --theme-border: #334155;
+            --theme-text: #f1f5f9;
+            --theme-text-secondary: #94a3b8;
+            --theme-header-bg: #020617;
+            --theme-header-text: #f1f5f9;
+            --theme-footer-bg: #020617;
+            --theme-footer-text: #64748b;
+            --theme-card-bg: #1e293b;
+            --theme-accent: #34d399;
+            --theme-accent-hover: #10b981;
+            --theme-muted: #1e293b;
+            --theme-shadow: rgba(0,0,0,0.3);
+        }
+
+        /* 💎 PREMIUM THEME (Royal Gold & Deep Indigo) */
+        body.theme-premium {
+            --theme-bg: #0f0a1a;
+            --theme-surface: #1a1230;
+            --theme-border: #3d2e6b;
+            --theme-text: #f0e6ff;
+            --theme-text-secondary: #b8a3e6;
+            --theme-header-bg: #0d0820;
+            --theme-header-text: #f0e6ff;
+            --theme-footer-bg: #0d0820;
+            --theme-footer-text: #8b7ab5;
+            --theme-card-bg: #1e1540;
+            --theme-accent: #f59e0b;
+            --theme-accent-hover: #d97706;
+            --theme-muted: #1e1540;
+            --theme-shadow: rgba(245,158,11,0.15);
+        }
+
+        /* Apply theme variables to body and common elements */
+        body { background-color: var(--theme-bg); color: var(--theme-text); }
+        body.theme-dark, body.theme-premium { background-color: var(--theme-bg); color: var(--theme-text); }
+        .theme-surface { background-color: var(--theme-surface); }
+        .theme-border { border-color: var(--theme-border); }
+        .theme-card { background-color: var(--theme-card-bg); border-color: var(--theme-border); }
+        .theme-muted { background-color: var(--theme-muted); }
+        .theme-text-secondary { color: var(--theme-text-secondary); }
+        .theme-accent { color: var(--theme-accent); }
+        .theme-accent-bg { background-color: var(--theme-accent); }
+        .theme-shadow { box-shadow: 0 1px 3px var(--theme-shadow); }
+
+        /* Theme toggle button animation */
+        .theme-btn-rotate {
+            animation: spin-theme 0.5s ease-in-out;
+        }
+        @keyframes spin-theme {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased max-w-md mx-auto min-h-screen shadow-2xl border-x border-gray-200 flex flex-col relative">
+
+    <header class="bg-slate-900 text-white sticky top-0 z-40 px-4 py-3 shadow-md">
+        <div class="flex items-center justify-between mb-2">
+            <div>
+                <h1 class="text-sm font-extrabold tracking-tight whitespace-nowrap" id="companyName">EMVEESS INFRAVENTURES PVT.LTD</h1>
+                <p class="text-[10px] text-slate-400 font-medium">Vendor Partner | Tata Steel Ltd</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span id="todayDateDisplay" class="flex items-center gap-1 bg-slate-800 text-xs px-2 py-1.5 rounded-lg border border-slate-700 text-slate-300 font-medium whitespace-nowrap">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span id="dateText">Loading...</span>
+                </span>
+                <button onclick="toggleLanguage()" class="flex items-center gap-1 bg-slate-800 text-xs px-2 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-700 transition">
+                    <i data-lucide="globe" class="w-4 h-4 text-emerald-400"></i>
+                    <span id="langBtn">A/अ</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-800">
+            <button onclick="openPublicSearchModal()" class="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 px-1 rounded-md transition shadow-sm" id="btnPublicSearch">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Search
+            </button>
+            <button onclick="openOfficerModal()" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold py-2 px-1 rounded-md border border-slate-700 transition shadow-sm" id="btnOfficerSearch">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i> Officer
+            </button>
+            <a href="https://script.google.com/macros/s/AKfycbyKpFHGJlliJyzuDfYHn3eDaDyD12mfdviUQa44fpAd9JgyzQ5I2st65Rj-7XLrlqf9/exec" target="_blank" class="flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold py-2 px-1 rounded-md transition shadow-sm" id="btnDmConduct">
+                <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i> Conduct DM
+            </a>
+        </div>
+    </header>
+
+    <main class="p-4 flex-1 space-y-5 custom-scroll overflow-y-auto bg-slate-50">
+
+        <div class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex flex-col items-center justify-center text-emerald-600 shadow-inner">
+                    <span class="text-lg font-black leading-none">184</span>
+                    <span class="text-[7px] font-black uppercase tracking-wider text-emerald-700" id="daysLabel">Days</span>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide" id="incidentDaysTitle">Incident Free Days</h4>
+                    <p class="text-[11px] text-slate-600 font-medium italic mt-0.5" id="safetyQuote">"सुरक्षा से समझौता, दुर्घटना को न्योता। Always wear your PPE!"</p>
+                </div>
+            </div>
+            <i data-lucide="shield" class="w-5 h-5 text-emerald-500 shrink-0"></i>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div onclick="openEmergencyModal()" class="emergency-blink text-white p-3.5 rounded-xl shadow-lg cursor-pointer transform active:scale-95 transition flex flex-col justify-between min-h-[90px]">
+                <div class="flex justify-between items-start">
+                    <i data-lucide="phone-call" class="w-6 h-6"></i>
+                    <span class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">SOS</span>
+                </div>
+                <div>
+                    <h3 class="font-black text-sm tracking-wide" id="emergencyTitle">EMERGENCY NO</h3>
+                    <p class="text-[10px] text-red-100 opacity-90" id="emergencySub">Click to Dial</p>
+                </div>
+            </div>
+
+            <div onclick="openTslRules()" class="bg-gradient-to-br from-blue-700 to-indigo-900 text-white p-3.5 rounded-xl shadow-lg cursor-pointer transform active:scale-95 transition flex flex-col justify-between min-h-[90px]">
+                <div class="flex justify-between items-start">
+                    <i data-lucide="award" class="w-6 h-6 text-amber-400"></i>
+                    <span class="bg-blue-600 text-[10px] px-1.5 py-0.5 rounded-full font-bold">TSL</span>
+                </div>
+                <div>
+                    <h3 class="font-black text-sm tracking-wide" id="tslRulesTitle">LIFE SAVING RULES</h3>
+                    <p class="text-[10px] text-blue-100 opacity-90" id="tslRulesSub">10 Absolute Mandates</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" id="sectionReporting">Log Safety & Grievances</h2>
+            <div class="grid grid-cols-2 gap-2.5">
+                <button onclick="openReportingForm('Near Miss')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-amber-50 rounded-lg text-amber-600 mb-1.5"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblNearMiss">Near Miss</span>
+                </button>
+                <button onclick="openReportingForm('Hazard')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-red-50 rounded-lg text-red-600 mb-1.5"><i data-lucide="flame" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblHazard">Hazard</span>
+                </button>
+                <button onclick="openObservationSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600 mb-1.5"><i data-lucide="eye" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblObservation">Safety Observation</span>
+                </button>
+                <button onclick="openFeedbackSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600 mb-1.5"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblFeedback">Feedback</span>
+                </button>
+                <button onclick="openGrievanceSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95 col-span-2">
+                    <div class="p-2 bg-purple-50 rounded-lg text-purple-600 mb-1.5"><i data-lucide="frown" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblGrievances">Grievances</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5 mt-2.5">
+                <button onclick="openReportingForm('Speak Up')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 mb-1.5"><i data-lucide="megaphone" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblSpeakUp">Speak Up</span>
+                </button>
+                <button onclick="openSuggestionSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
+                    <div class="p-2 bg-sky-50 rounded-lg text-sky-600 mb-1.5"><i data-lucide="lightbulb" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-bold text-slate-700" id="lblSuggestion">Suggestion</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-2.5">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" id="sectionHub">Portals & Hubs</h2>
+            
+            <div onclick="toggleReportsLog()" class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl shadow-md cursor-pointer hover:opacity-95 transition">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-white/10 rounded-lg"><i data-lucide="folder-search" class="w-5 h-5"></i></div>
+                    <div>
+                        <h4 class="text-sm font-black tracking-wide" id="btnViewReports">View Logged Reports</h4>
+                        <p class="text-[10px] text-emerald-100 opacity-90" id="subViewReports">Track Open/Closed Statuses</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-down" id="arrowIcon" class="w-5 h-5 text-white transition-transform duration-300"></i>
+            </div>
+
+            <div id="reportsLogSection" class="hidden bg-white border border-gray-200 rounded-xl p-3 shadow-inner space-y-2 transition-all">
+                <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 border-b border-gray-100">
+                    <span id="logHeaderType">Type & ID</span> <span id="logHeaderStatus">Status</span>
+                </div>
+                <div class="flex justify-between items-center py-1.5 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800 block">⚠️ Near Miss</span>
+                        <span class="text-[9px] text-slate-400">ID: #NM-9482 • 05 Jul</span>
+                    </div>
+                    <span class="bg-red-50 text-red-600 text-[9px] font-black px-2 py-0.5 rounded border border-red-200 uppercase">Open</span>
+                </div>
+            </div>
+
+            <div onclick="openSafetyDashboard()" class="flex items-center justify-between p-4 bg-slate-900 text-white rounded-xl shadow-sm cursor-pointer hover:bg-slate-800 transition">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-800 rounded-lg text-emerald-400"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold" id="lblDashboard">View Safety Dashboard</h4>
+                        <p class="text-[10px] text-slate-400" id="subDashboard">Live Metric Charts & Analysis</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            </div>
+
+            <div onclick="openTrainingManagement()" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800" id="lblTraining">Training Management</h4>
+                        <p class="text-[10px] text-slate-500" id="subTraining">Modules, Videos & Progress</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            </div>
+
+            <div onclick="openSafetyAlertsModal()" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-rose-50 rounded-lg text-rose-600"><i data-lucide="bell" class="w-5 h-5"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800" id="lblAlerts">Safety Alerts</h4>
+                        <p class="text-[10px] text-slate-500" id="subAlerts">Recent Plant-Wide Broadcasts</p>
+                    </div>
+                </div>
+                <span class="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">3 NEW</span>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+                <i data-lucide="calendar-days" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="font-extrabold text-sm text-slate-800" id="eventsTitle">Upcoming Safety Events</h3>
+            </div>
+            <div class="space-y-2.5">
+                <div class="flex items-start gap-3 p-2 rounded-lg bg-indigo-50/50 border border-indigo-100">
+                    <div class="bg-indigo-600 text-white text-center rounded px-2 py-1 font-black text-xs shrink-0">
+                        10 <span class="block text-[8px] font-medium uppercase">Jul</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800" id="eventMockDrillTitle">Confined Space Mock Drill</h4>
+                        <p class="text-[10px] text-slate-500" id="eventMockDrillSub">Time: 10:30 AM • Site-4 Blast Furnace Area</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="megaphone" class="w-5 h-5 text-rose-500"></i>
+                    <h3 class="font-extrabold text-sm text-slate-800" id="noticesTitle">Circulars & Notices</h3>
+                </div>
+                <span class="bg-rose-100 text-rose-700 text-[9px] font-black px-1.5 py-0.5 rounded" id="liveBoardBadge">LIVE BOARD</span>
+            </div>
+            <div class="space-y-3">
+                <div onclick="alert('Independence Day Notice')" class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl cursor-pointer hover:bg-amber-50 transition">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[9px] bg-amber-200 text-amber-800 font-black px-1.5 py-0.5 rounded uppercase" id="badgeHoliday">Holiday</span>
+                        <span class="text-[9px] text-slate-400 font-medium" id="timeToday">Today</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-800 leading-tight" id="noticeHolidayTitle">Independence Day Holiday Notice</h4>
+                    <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-1" id="noticeHolidaySub">Shift C operations will remain closed...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+                <i data-lucide="folder-open" class="w-5 h-5 text-slate-700"></i>
+                <h3 class="font-extrabold text-sm text-slate-800" id="libraryTitle">Document Vault / Library</h3>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <div onclick="alert('📋 SOP Standard Operating Procedures\n\nFile: SOP_Master_Document.pdf\nVersion: 4.2\nPages: 156\n\n✅ Access granted')" class="flex items-center gap-2 p-2.5 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 cursor-pointer transition text-xs font-bold text-red-700" id="vaultSop">
+                    <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i> <span id="vaultSopText">SOP</span>
+                </div>
+                <div onclick="alert('🎯 Job Hazard Analysis\n\nFile: JHA_Folders.xlsx\nModules: 12\nWorkstations: 34\n\n✅ Access granted')" class="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 cursor-pointer transition text-xs font-bold text-blue-700" id="vaultJha">
+                    <i data-lucide="shield-alert" class="w-4 h-4 shrink-0"></i> <span id="vaultJhaText">JHA</span>
+                </div>
+                <div onclick="alert('⚠️ Risk Control & Risk Management (HIRA)\n\nFile: RCRM_HIRA_Assessment.pdf\nRisks Identified: 47\nControls Implemented: 42\n\n✅ Access granted')" class="flex items-center gap-2 p-2.5 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 cursor-pointer transition text-xs font-bold text-orange-700" id="vaultRcrm">
+                    <i data-lucide="alert-octagon" class="w-4 h-4 shrink-0"></i> <span id="vaultRcrmText">RCRM/HIRA</span>
+                </div>
+                <div onclick="alert('🧪 Material Safety Data Sheets\n\nFile: MSDS_Master_Library.zip\nChemicals: 28\nDocuments: 156\n\n✅ Access granted')" class="flex items-center gap-2 p-2.5 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 cursor-pointer transition text-xs font-bold text-purple-700" id="vaultMsds">
+                    <i data-lucide="flask" class="w-4 h-4 shrink-0"></i> <span id="vaultMsdsText">MSDS</span>
+                </div>
+                <div onclick="alert('🎓 Third Party Inspector Certificates\n\nFile: TPI_Certificates.pdf\nCertifications: 8\nExpiry: 12 Dec 2026\n\n✅ Access granted')" class="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 cursor-pointer transition text-xs font-bold text-emerald-700" id="vaultTpi">
+                    <i data-lucide="award" class="w-4 h-4 shrink-0"></i> <span id="vaultTpiText">TPI Certs</span>
+                </div>
+                <div onclick="openEmergencyPrepModal()" class="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 cursor-pointer transition text-xs font-bold text-rose-700" id="vaultEmergency">
+                    <i data-lucide="bell-alert" class="w-4 h-4 shrink-0"></i> <span id="vaultEmergencyText">Emergency Preparedness</span>
+                </div>
+                <div onclick="openAllPolicyModal()" class="flex items-center gap-2 p-2.5 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 cursor-pointer transition text-xs font-bold text-indigo-700" id="vaultPolicies">
+                    <i data-lucide="scroll" class="w-4 h-4 shrink-0"></i> <span id="vaultPoliciesText">All Policy</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-xl p-4 text-white shadow-md relative overflow-hidden">
+            <div class="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4"><i data-lucide="crown" class="w-32 h-32"></i></div>
+            <div class="flex items-center gap-1 mb-1.5">
+                <i data-lucide="crown" class="w-4 h-4 text-yellow-200 fill-yellow-200"></i>
+                <h3 class="text-xs font-black uppercase tracking-widest text-yellow-100" id="fameTitle">WALL OF FAME</h3>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full bg-white/20 border-2 border-white flex items-center justify-center overflow-hidden font-black text-lg shadow-inner">👷‍♂️</div>
+                <div>
+                    <h4 class="font-extrabold text-base leading-tight">Rajesh Kumar</h4>
+                    <p class="text-[10px] text-yellow-100 font-medium" id="fameSub">Fabrication Team — Jamshedpur</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+                <i data-lucide="images" class="w-5 h-5 text-purple-600"></i>
+                <h3 class="font-extrabold text-sm text-slate-800" id="galleryTitle">📸 Event Gallery</h3>
+                <span class="text-[8px] text-slate-400 font-medium ml-auto bg-purple-50 px-2 py-0.5 rounded-full" id="gallerySub">Scrolling</span>
+            </div>
+            <div class="gallery-scroll">
+                <div class="gallery-scroll-inner">
+                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Drill - June 2026\n\nConfined Space Rescue Mock Drill\nParticipants: 24 workers\nLocation: Site-4 Blast Furnace\nConducted by: TSL Safety Team')">
+                        <div class="relative w-full h-28 bg-gray-900">
+                            <img src="https://picsum.photos/seed/safetydrill1/320/180" alt="Safety Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-2 left-2 right-2">
+                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🚒 Safety Drill</h5>
+                                <p class="text-[8px] text-gray-300">Jun 2026 • 24 Participants</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Awards - May 2026\n\nMonthly Safety Excellence Awards\nAwardees: 12 Workers\nVenue: Main Auditorium\nChief Guest: Plant Head')">
+                        <div class="relative w-full h-28 bg-gray-900">
+                            <img src="https://picsum.photos/seed/safetyawards1/320/180" alt="Safety Awards" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-2 left-2 right-2">
+                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🏆 Safety Awards</h5>
+                                <p class="text-[8px] text-gray-300">May 2026 • 12 Awardees</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Training Session - Apr 2026\n\nPPE Usage & Care Workshop\nAttendees: 45 workers\nDuration: 2 Hours\nTrainer: Mr. Sharma (Safety Officer)')">
+                        <div class="relative w-full h-28 bg-gray-900">
+                            <img src="https://picsum.photos/seed/trainingsession1/320/180" alt="Training Session" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-2 left-2 right-2">
+                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">📚 Training Session</h5>
+                                <p class="text-[8px] text-gray-300">Apr 2026 • 45 Attendees</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Fire Mock Drill - Mar 2026\n\nAnnual Fire Evacuation Drill\nParticipants: 120 workers\nEvacuation Time: 4 min 32 sec\nAssessment: Excellent')">
+                        <div class="relative w-full h-28 bg-gray-900">
+                            <img src="https://picsum.photos/seed/firedrill1/320/180" alt="Fire Mock Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                            <div class="absolute bottom-2 left-2 right-2">
+                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🔥 Fire Mock Drill</h5>
+                                <p class="text-[8px] text-gray-300">Mar 2026 • 120 Participants</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 text-center py-4 px-4 text-[10px] font-semibold border-t border-slate-800 mt-auto z-10">
+        <div class="text-slate-200 font-bold uppercase tracking-wider text-[11px] mb-1">EMVEESS INFRAVENTURES PVT LTD</div>
+        <div class="text-slate-400 font-medium mb-1 leading-relaxed" id="footerAddr"> Supply Chain Management, West Bokaro Ghato Tand,<br> Ramgarh, Jharkhand, India </div>
+        <div class="text-slate-500 font-medium mb-2.5"> 📧 <a href="mailto:scm@emvs.in" class="text-emerald-400 hover:text-emerald-300 transition">scm@emvs.in</a> </div>
+        <div class="pt-2.5 border-t border-slate-800 text-slate-600 flex flex-col items-center gap-1"> <span>Created &amp; Powered by <span class="text-emerald-500 font-black">Safexindia.in</span></span> <span class="text-[9px] text-slate-600">&copy; Copyright Reserved 2026 &copy; Musahid</span> </div>
+    </footer>
+</body>
+</html>
