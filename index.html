@@ -138,9 +138,9 @@
             <a href="https://musahid33.github.io/emveess-safety-portal/" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-2 px-1 rounded-md transition shadow-sm" id="btnPublicSearch">
                 <i data-lucide="search" class="w-3.5 h-3.5"></i> Search
             </a>
-            <a href="https://musahid33.github.io/emveess-safety-portal/" target="_blank" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold py-2 px-1 rounded-md border border-slate-700 transition shadow-sm" id="btnOfficerSearch">
+            <button onclick="openOfficerModal()" class="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold py-2 px-1 rounded-md border border-slate-700 transition shadow-sm" id="btnOfficerSearch">
                 <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i> Officer
-            </a>
+            </button>
             <a href="https://script.google.com/macros/s/AKfycbyKpFHGJlliJyzuDfYHn3eDaDyD12mfdviUQa44fpAd9JgyzQ5I2st65Rj-7XLrlqf9/exec" target="_blank" class="flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold py-2 px-1 rounded-md transition shadow-sm" id="btnDmConduct">
                 <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i> Conduct DM
             </a>
@@ -156,102 +156,4 @@
                     <span class="text-[7px] font-black uppercase tracking-wider text-emerald-700" id="daysLabel">Days</span>
                 </div>
                 <div>
-                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide" id="incidentDaysTitle">Incident Free Days</h4>
-                    <p class="text-[11px] text-slate-600 font-medium italic mt-0.5" id="safetyQuote">"सुरक्षा से समझौता, दुर्घटना को न्योता। Always wear your PPE!"</p>
-                </div>
-            </div>
-            <i data-lucide="shield" class="w-5 h-5 text-emerald-500 shrink-0"></i>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-            <div onclick="openEmergencyModal()" class="emergency-blink text-white p-3.5 rounded-xl shadow-lg cursor-pointer transform active:scale-95 transition flex flex-col justify-between min-h-[90px]">
-                <div class="flex justify-between items-start">
-                    <i data-lucide="phone-call" class="w-6 h-6"></i>
-                    <span class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">SOS</span>
-                </div>
-                <div>
-                    <h3 class="font-black text-sm tracking-wide" id="emergencyTitle">EMERGENCY NO</h3>
-                    <p class="text-[10px] text-red-100 opacity-90" id="emergencySub">Click to Dial</p>
-                </div>
-            </div>
-
-            <div onclick="openTslRules()" class="bg-gradient-to-br from-blue-700 to-indigo-900 text-white p-3.5 rounded-xl shadow-lg cursor-pointer transform active:scale-95 transition flex flex-col justify-between min-h-[90px]">
-                <div class="flex justify-between items-start">
-                    <i data-lucide="award" class="w-6 h-6 text-amber-400"></i>
-                    <span class="bg-blue-600 text-[10px] px-1.5 py-0.5 rounded-full font-bold">TSL</span>
-                </div>
-                <div>
-                    <h3 class="font-black text-sm tracking-wide" id="tslRulesTitle">LIFE SAVING RULES</h3>
-                    <p class="text-[10px] text-blue-100 opacity-90" id="tslRulesSub">10 Absolute Mandates</p>
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" id="sectionReporting">Log Safety & Grievances</h2>
-            <div class="grid grid-cols-2 gap-2.5">
-                <button onclick="openReportingForm('Near Miss')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-amber-50 rounded-lg text-amber-600 mb-1.5"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblNearMiss">Near Miss</span>
-                </button>
-                <button onclick="openReportingForm('Hazard')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-red-50 rounded-lg text-red-600 mb-1.5"><i data-lucide="flame" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblHazard">Hazard</span>
-                </button>
-                <button onclick="openObservationSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600 mb-1.5"><i data-lucide="eye" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblObservation">Safety Observation</span>
-                </button>
-                <button onclick="openFeedbackSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600 mb-1.5"><i data-lucide="message-square" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblFeedback">Feedback</span>
-                </button>
-                <button onclick="openGrievanceSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95 col-span-2">
-                    <div class="p-2 bg-purple-50 rounded-lg text-purple-600 mb-1.5"><i data-lucide="frown" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblGrievances">Grievances</span>
-                </button>
-            </div>
-            <div class="grid grid-cols-2 gap-2.5 mt-2.5">
-                <button onclick="openReportingForm('Speak Up')" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 mb-1.5"><i data-lucide="megaphone" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblSpeakUp">Speak Up</span>
-                </button>
-                <button onclick="openSuggestionSelectModal()" class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition shadow-sm active:scale-95">
-                    <div class="p-2 bg-sky-50 rounded-lg text-sky-600 mb-1.5"><i data-lucide="lightbulb" class="w-5 h-5"></i></div>
-                    <span class="text-xs font-bold text-slate-700" id="lblSuggestion">Suggestion</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="space-y-2.5">
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1" id="sectionHub">Portals & Hubs</h2>
-            
-            <div onclick="toggleReportsLog()" class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl shadow-md cursor-pointer hover:opacity-95 transition">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-white/10 rounded-lg"><i data-lucide="folder-search" class="w-5 h-5"></i></div>
-                    <div>
-                        <h4 class="text-sm font-black tracking-wide" id="btnViewReports">View Logged Reports</h4>
-                        <p class="text-[10px] text-emerald-100 opacity-90" id="subViewReports">Track Open/Closed Statuses</p>
-                    </div>
-                </div>
-                <i data-lucide="chevron-down" id="arrowIcon" class="w-5 h-5 text-white transition-transform duration-300"></i>
-            </div>
-
-            <div id="reportsLogSection" class="hidden bg-white border border-gray-200 rounded-xl p-3 shadow-inner space-y-2 transition-all">
-                <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 border-b border-gray-100">
-                    <span id="logHeaderType">Type & ID</span> <span id="logHeaderStatus">Status</span>
-                </div>
-                <div class="flex justify-between items-center py-1.5 text-xs">
-                    <div>
-                        <span class="font-bold text-slate-800 block">⚠️ Near Miss</span>
-                        <span class="text-[9px] text-slate-400">ID: #NM-9482 • 05 Jul</span>
-                    </div>
-                    <span class="bg-red-50 text-red-600 text-[9px] font-black px-2 py-0.5 rounded border border-red-200 uppercase">Open</span>
-                </div>
-            </div>
-
-            <div onclick="openSafetyDashboard()" class="flex items-center justify-between p-4 bg-slate-900 text-white rounded-xl shadow-sm cursor-pointer hover:bg-slate-800 transition">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-slate-800 rounded-lg text-emerald-400"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
-                    <div>
-                        <h
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide" id
