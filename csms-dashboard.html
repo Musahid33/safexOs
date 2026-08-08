@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>CSMS AUDIT · Internal Audit Conduct</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#0f172a;--blue:#2563eb;--line:#e2e8f0;--muted:#64748b;--bg:#f5f7fb;--card:#fff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#0f172a;font-family:Arial,system-ui,sans-serif}.wrap{max-width:760px;margin:0 auto;padding:18px 14px}.audit-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #0f172a12;overflow:hidden}.audit-head{background:linear-gradient(120deg,#0f172a,#1d4ed8);color:#fff;padding:18px 16px}.audit-head h1{font-size:18px;margin:0;font-weight:900;letter-spacing:.03em}.audit-head p{font-size:10px;color:#dbeafe;margin:5px 0 0}.audit-body{padding:14px}.tree-root{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:#0f172a;color:#fff;border:0;border-radius:11px;padding:14px;font-size:12px;font-weight:900;cursor:pointer}.tree-root:hover{background:#1e293b}.tree-root span{font-size:18px;color:#fbbf24}.tree-node{display:none;padding:10px 0 0}.tree-node.open{display:block}.tree-item{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;color:#0f172a;cursor:pointer}.tree-item:hover{border-color:#2563eb;background:#eff6ff}.tree-item b{width:29px;height:29px;border-radius:8px;background:#dbeafe;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:10px}.tree-item span{font-size:11px;font-weight:800;flex:1}.tree-item em{font-size:9px;color:var(--muted);font-style:normal;font-weight:800}.folder-grid{display:none;grid-template-columns:repeat(2,1fr);gap:8px;padding:2px 0 10px 35px}.folder-grid.open{display:grid}.folder{display:flex;align-items:center;gap:9px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;text-align:left;padding:11px;cursor:pointer;color:#1e3a8a}.folder:hover{background:#eff6ff;border-color:#60a5fa}.folder strong{width:28px;height:28px;border-radius:8px;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px}.folder span{font-size:10px;font-weight:800;line-height:1.25}.folder small{font-size:8px;color:#64748b;font-weight:700}.modal{display:none;position:fixed;inset:0;background:#000b;z-index:50;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}.modal-card{background:#fff;width:min(620px,100%);max-height:82vh;border-radius:15px;overflow:auto}.modal-head{padding:13px 15px;background:var(--navy);color:#fff;display:flex;justify-content:space-between;align-items:center}.modal-head h2{font-size:14px;margin:0}.modal-head p{font-size:9px;color:#cbd5e1;margin:4px 0 0}.modal-head button{border:0;background:none;color:#fff;font-size:18px;cursor:pointer}.modal-content{padding:14px}.doc{border:1px solid var(--line);border-radius:10px;padding:11px;margin-bottom:8px}.doc h3{font-size:11px;margin:0 0 4px}.doc p{font-size:10px;color:var(--muted);margin:0 0 9px}.doc-actions{display:flex;gap:6px}.doc-actions a,.doc-actions span{flex:1;text-align:center;padding:8px;border-radius:7px;font-size:10px;font-weight:800;text-decoration:none}.view{background:#2563eb;color:#fff}.download{background:#e2e8f0;color:#334155}.empty{text-align:center;color:var(--muted);font-size:11px;padding:25px 10px}@media(max-width:480px){.folder-grid{padding-left:0;grid-template-columns:repeat(2,1fr)}.audit-head h1{font-size:16px}}
+.folder-toolbar{display:flex;gap:7px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:#f8fafc}.folder-toolbar input{flex:1;min-width:160px;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px}.folder-tools-box{display:none;width:100%;gap:7px}.folder-tools-box.open{display:flex}.folder-card{display:flex;align-items:center;gap:9px;border:1px solid #dbeafe;background:#f8fbff;border-radius:9px;padding:9px;margin-bottom:7px;cursor:pointer}.folder-card:hover{background:#eff6ff}.folder-card strong{font-size:18px}.folder-card span{font-size:10px;font-weight:800}.doc-actions button{flex:1;border:0;border-radius:7px;padding:8px;font-size:10px;font-weight:800;cursor:pointer}.delete-btn{background:#fee2e2;color:#b91c1c}.upload-note{font-size:9px;color:var(--muted);width:100%}
+.tree-root-wrap{display:flex;gap:6px;align-items:stretch;margin-bottom:8px}.tree-root-wrap .tree-root{flex:1}.manage-btn{border:0;border-radius:10px;background:#2563eb;color:#fff;padding:0 11px;font-size:10px;font-weight:900;cursor:pointer}.manage-btn:hover{background:#1d4ed8}.section-break{display:flex;align-items:center;gap:9px;margin:16px 0 12px;color:#94a3b8;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.section-break:before,.section-break:after{content:"";height:1px;background:linear-gradient(90deg,transparent,#cbd5e1);flex:1}.section-break:after{background:linear-gradient(90deg,#cbd5e1,transparent)}
+.audit-head-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.internal-audit-btn{border:1px solid rgba(255,255,255,.35);background:#f59e0b;color:#0f172a;border-radius:8px;padding:8px 10px;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap}.internal-audit-btn:hover{background:#fbbf24;transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="audit-card">
+    <div class="audit-head"><div class="audit-head-row"><h1>CSMS AUDIT</h1><button class="internal-audit-btn" onclick="openInternalAudit()">CSMS INTERNAL AUDIT</button></div><p>CONTRACTOR SAFETY MANAGEMENT STANDARD - ANNEXURE-08 AUDIT DOCUMENTATION AND RECORDS</p></div>
+    <div class="audit-body">
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('planningNode')">📋 1.0 PLANNING OF SAFETY SYSTEM &amp; PROCESS <span>＋</span></button><button class="manage-btn" onclick="openAuditFolder('1.0','Planning of Safety System &amp; Process')">📁 Manage</button></div>
+      <div id="planningNode" class="tree-node">
+        <button class="tree-item" onclick="openAuditFolder('1.1','Certification of ISO-45001 and validity / renewal audit')"><b>1.1</b><span>Certification of ISO-45001 and its validity</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="toggleTree('smpNode')"><b>1.2</b><span>Safety Management Plan</span><em>＋</em></button>
+        <div id="smpNode" class="folder-grid tree-node">
+          <button class="folder" onclick="openAuditFolder('A','Safety ABP of Current FY')"><strong>A</strong><span>Safety ABP<br><small>Current FY</small></span></button>
+          <button class="folder" onclick="openAuditFolder('B','Safety Organisation Structure')"><strong>B</strong><span>Safety Org.<br><small>Structure</small></span></button>
+          <button class="folder" onclick="openAuditFolder('C','Daily Management for Contract / Safety Supervisor')"><strong>C</strong><span>Daily Safety<br><small>Management</small></span></button>
+          <button class="folder" onclick="openAuditFolder('D','Reward &amp; Recognition Policy')"><strong>D</strong><span>Reward &amp;<br><small>Recognition</small></span></button>
+          <button class="folder" onclick="openAuditFolder('E','Consequence Management Policy')"><strong>E</strong><span>Consequence<br><small>Management</small></span></button>
+          <button class="folder" onclick="openAuditFolder('F','Safety Training Plan FY-wise')"><strong>F</strong><span>Safety Training<br><small>Plan</small></span></button>
+          <button class="folder" onclick="openAuditFolder('G','Safety Campaign Plan FY-wise')"><strong>G</strong><span>Safety Campaign<br><small>Plan</small></span></button>
+          <button class="folder" onclick="openAuditFolder('H','Safety Review Meeting Plan FY-wise')"><strong>H</strong><span>Safety Review<br><small>Meetings</small></span></button>
+          <button class="folder" onclick="openAuditFolder('I','Incident Investigation &amp; Recommendation Deployment')"><strong>I</strong><span>Incident<br><small>Investigation</small></span></button>
+          <button class="folder" onclick="openAuditFolder('J','Procedure for CAR')"><strong>J</strong><span>CAR<br><small>Procedure</small></span></button>
+        </div>
+      </div>
+
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('deploymentNode')">🛡️ 2.A DEPLOYMENT OF SAFETY SYSTEM AND PROCESS <span>＋</span></button><button class="manage-btn" onclick="openAuditFolder('2.A','Deployment of Safety System and Process')">📁 Manage</button></div>
+      <div id="deploymentNode" class="tree-node">
+        <button class="tree-item" onclick="openAuditFolder('2.1','Compliance of Safety-related Legal Requirements')"><b>2.1</b><span>Safety-related Legal Requirements Compliance</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.2','Deployment of Competent Site Safety Supervisor')"><b>2.2</b><span>Competent Site Safety Supervisor Deployment</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.3','SOP Availability for Vendor Jobs')"><b>2.3</b><span>SOP Availability for Jobs</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.4','Regular Toolbox Meeting / KYT Compliance')"><b>2.4</b><span>Toolbox Meeting / KYT Compliance</span><em>📁 Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.5','Hazard Mapping and PPE Deployment')"><b>2.5</b><span>Hazard Mapping &amp; PPE Deployment</span><em>📁 Evidence</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.6','Monthly Mass Meeting and Action Compliance')"><b>2.6</b><span>Monthly Mass Meeting Compliance</span><em>📁 MOM / Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.7','Training Compliance as per TNI / Safety Plan')"><b>2.7</b><span>Training Compliance / TNI</span><em>📁 Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.8','Standard Tools and Tackles Physical Condition')"><b>2.8</b><span>Tools &amp; Tackles Condition</span><em>📁 Evidence</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.9','1S and 2S Compliance')"><b>2.9</b><span>1S / 2S Workplace Compliance</span><em>📁 Photos / Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.10','Incident Investigation and Root Cause Analysis')"><b>2.10</b><span>Incident Investigation &amp; RCA</span><em>📁 Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.11','Deployment of Incident Recommendations and Learning')"><b>2.11</b><span>Recommendation / Learning Deployment</span><em>📁 Evidence</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.12','Severity 4 and 5 Observation CAR Closure')"><b>2.12</b><span>Severity 4/5 CAR Closure</span><em>📁 CAR Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.13','Amenities and Welfare Facilities')"><b>2.13</b><span>Amenities &amp; Welfare Facilities</span><em>📁 Evidence</em></button>
+        <button class="tree-item" onclick="openAuditFolder('2.14','Employee Safety Awareness and Engagement')"><b>2.14</b><span>Employee Awareness / Engagement Sample</span><em>📁 Records</em></button>
+      </div>
+
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('engagementNode')">👥 2.B ENGAGEMENT OF VENDOR EMPLOYEES IN DEPLOYED SAFETY SYSTEM AND PROCEDURE <span>＋</span></button></div>
+      <div id="engagementNode" class="tree-node">
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:11px 12px;margin-bottom:9px;color:#9a3412;font-size:10px;line-height:1.45;font-weight:700">💬 <b>Site Interaction Audit Note:</b> This is a site interaction part of the audit. Please create awareness among employees and ask/give awareness regarding these questions before assessment.</div>
+      </div>
+
+<div class="section-break" aria-hidden="true"></div>
+
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('improvementNode')">🚀 3.0 SAFETY IMPROVEMENT INITIATIVES <span>＋</span></button><button class="manage-btn" onclick="openAuditFolder('3.0','Safety Improvement Initiatives')">📁 Manage</button></div>
+      <div id="improvementNode" class="tree-node">
+        <button class="tree-item" onclick="openAuditFolder('3.1','Deployment Verification of Reward and Recognition Policy')"><b>3.1</b><span>Reward &amp; Recognition Policy Deployment</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="openAuditFolder('3.2','Deployment Verification of Consequence Management Policy')"><b>3.2</b><span>Consequence Management Policy Deployment</span><em>📁 Documents</em></button>
+        <button class="tree-item" onclick="openAuditFolder('3.3','Deployment Verification of Safety Campaign')"><b>3.3</b><span>Safety Campaign Deployment</span><em>📁 Plans / Evidence</em></button>
+        <button class="tree-item" onclick="openAuditFolder('3.4','Safety Improvement Project Implementation')"><b>3.4</b><span>Safety Improvement Projects</span><em>📁 MOC / Evidence</em></button>
+      </div>
+
+      <div class="section-break" aria-hidden="true"></div>
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('reviewNode')">🩺 4.0 REVIEW OF IMPLEMENTED SAFETY SYSTEMS &amp; PROCESS <span>＋</span></button><button class="manage-btn" onclick="openAuditFolder('4.0','Review of Implemented Safety Systems and Process')">📁 Manage</button></div>
+      <div id="reviewNode" class="tree-node">
+        <button class="tree-item" onclick="openAuditFolder('4.1','Follow-up of High-risk Medical Cases Identified through PME / IME')"><b>4.1</b><span>Follow-up of High-risk Medical Cases identified through PME / IME</span><em>📁 Medical Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('4.2','Review Records of Daily Management Aspect of Safety Supervisor by Proprietor / Senior Leadership Team')"><b>4.2</b><span>Review Records of Daily Management by Safety Supervisor / Proprietor / Senior Leadership</span><em>📁 Review Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('4.3','Participation of Vendor Organization in Contractor AIC Forums')"><b>4.3</b><span>Participation in Contractor AIC Forums</span><em>📁 MOM / Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('4.4','Review of CAR Incident Investigation TBM Talk JCC Campaign R&R Consequence Management')"><b>4.4</b><span>Review of CAR, Incident, TBM, JCC, Campaign, R&amp;R &amp; Consequence</span><em>📁 Review Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('4.5','Review and Deployment of OFIs Identified During Last Assessment')"><b>4.5</b><span>Review &amp; Deployment of Previous Assessment OFIs</span><em>📁 OFI Records</em></button>
+      </div>
+
+      <div class="section-break" aria-hidden="true"></div>
+      <div class="tree-root-wrap"><button class="tree-root" onclick="toggleTree('leadNode')">🏆 5.0 LEAD PARAMETERS / REWARDS <span>＋</span></button><button class="manage-btn" onclick="openAuditFolder('5.0','Lead Parameters and Rewards')">📁 Manage</button></div>
+      <div id="leadNode" class="tree-node">
+        <button class="tree-item" onclick="openAuditFolder('5.1','Developed or Adopted and Deployed Industry Best Safety Practice')"><b>5.1</b><span>Industry Best Safety Practice Deployment</span><em>📁 Best Practices</em></button>
+        <button class="tree-item" onclick="openAuditFolder('5.2','Training Compliance on Applicable Safety Standards including E-Learning')"><b>5.2</b><span>Applicable Standards &amp; E-Learning Compliance</span><em>📁 Training Records</em></button>
+        <button class="tree-item" onclick="openAuditFolder('5.3','Participation in External or Tata Steel Organized Training Program')"><b>5.3</b><span>External / Tata Steel Training Participation</span><em>📁 Certificates</em></button>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="folderModal" class="modal"><div class="modal-card"><div class="modal-head"><div><h2 id="folderTitle">Audit Folder</h2><p id="folderSub">Evidence documents</p></div><button onclick="closeFolder()">✕</button></div><div class="folder-toolbar"><button class="btn primary" onclick="toggleCreateFolder()">＋ Make Folder</button><button class="btn green" onclick="document.getElementById('folderUpload').click()">⬆ Upload</button><input id="folderUpload" type="file" hidden accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,image/*" onchange="handleFolderUpload(this)"><div id="folderCreateBox" class="folder-tools-box"><input id="newFolderName" placeholder="New folder name"><button class="btn primary" onclick="createAuditFolder()">Create</button></div><span class="upload-note">Upload PDF, PPT, Word, Excel or image evidence. Max 10 MB.</span></div><div id="folderContent" class="modal-content"></div></div></div>
+<script>
+const db=window.supabase.createClient('https://ixfwhxjtajmrdndhtsub.supabase.co','sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-');
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+let currentFolderCode='';let currentFolderTitle='';let currentFolderDocs=[];let currentSubfolders=[];
+function openInternalAudit(){const node=document.getElementById('planningNode');if(node){node.classList.add('open');node.scrollIntoView({behavior:'smooth',block:'start'});}}
+function toggleTree(id){const el=document.getElementById(id);if(el)el.classList.toggle('open')}
+async function openAuditFolder(code,title){currentFolderCode=code;currentFolderTitle=title;document.getElementById('folderTitle').textContent=code+' • '+title;document.getElementById('folderSub').textContent='Upload, view, download or delete evidence';document.getElementById('folderContent').innerHTML='<div class="empty">Loading folder...</div>';document.getElementById('folderModal').classList.add('open');await loadFolderContent()}
+async function loadFolderContent(){const content=document.getElementById('folderContent');try{const docsResult=await db.from('vault_library').select('*').order('id',{ascending:false});const foldersResult=await db.from('csms_audit_folders').select('*').eq('parent_code',currentFolderCode).order('id',{ascending:false});if(docsResult.error)throw docsResult.error;currentFolderDocs=(docsResult.data||[]).filter(d=>String(d.folder_code||'')===currentFolderCode||(!d.folder_code&&(String(d.title||'').toLowerCase().includes(currentFolderTitle.toLowerCase())||String(d.doc_type||'').toUpperCase().includes(currentFolderCode.toUpperCase()))));currentSubfolders=foldersResult.error?[]:(foldersResult.data||[]);renderFolderContent()}catch(e){content.innerHTML='<div class="empty">Unable to load folder. Run CSMS_DOCUMENTS_SETUP.sql and check Supabase policies.</div>'}}
+function renderFolderContent(){
+  const content=document.getElementById('folderContent');
+  let html='';
+  if(currentSubfolders.length){
+    html+='<h3 style="font-size:11px;margin:0 0 8px">📁 Folders</h3>';
+    html+=currentSubfolders.map(f=>`<button class="folder-card" onclick="openAuditFolder('${esc(f.folder_code)}','${esc(f.folder_name)}')"><strong>📁</strong><span>${esc(f.folder_name)}</span></button>`).join('');
+    html+='<hr style="border:0;border-top:1px solid var(--line);margin:12px 0">';
+  }
+  html+='<h3 style="font-size:11px;margin:0 0 8px">📄 Documents</h3>';
+  if(!currentFolderDocs.length){
+    html+='<div class="empty">No documents in this folder yet.<br><br>Use Upload to add evidence.</div>';
+  } else {
+    html+=currentFolderDocs.map(d=>{
+      const url=d.download_url||d.file_url||d.document_url||'';
+      return `<div class="doc"><h3>${esc(d.title||'Untitled document')}</h3><p>${esc(d.description||d.doc_type||'Evidence document')}</p><div class="doc-actions">${url?`<a class="view" target="_blank" rel="noopener" href="${esc(url)}">View</a><a class="download" target="_blank" rel="noopener" download href="${esc(url)}">Download</a>`:''}<button class="delete-btn" onclick="deleteAuditDocument(${d.id},'${esc(d.storage_path||'')}')">Delete</button></div></div>`;
+    }).join('');
+  }
+  content.innerHTML=html;
+}
+function toggleCreateFolder(){document.getElementById('folderCreateBox').classList.toggle('open');document.getElementById('newFolderName').focus()}
+async function createAuditFolder(){const input=document.getElementById('newFolderName');const name=input.value.trim();if(!name){alert('Enter a folder name.');return}const folderCode=currentFolderCode+'-'+Date.now();const {error}=await db.from('csms_audit_folders').insert([{folder_code:folderCode,parent_code:currentFolderCode,parent_title:currentFolderTitle,folder_name:name}]);if(error){alert('Folder could not be created: '+error.message);return}input.value='';document.getElementById('folderCreateBox').classList.remove('open');await loadFolderContent()}
+async function handleFolderUpload(input){const file=input.files[0];if(!file)return;if(file.size>10*1024*1024){alert('File must be smaller than 10 MB.');input.value='';return}try{const safe=file.name.toLowerCase().replace(/[^a-z0-9._-]/g,'-');const path=`csms-documents/${currentFolderCode}/${Date.now()}-${safe}`;const upload=await db.storage.from('csms-documents').upload(path,file,{upsert:false,contentType:file.type});if(upload.error)throw upload.error;const url=db.storage.from('csms-documents').getPublicUrl(path).data.publicUrl;const {error}=await db.from('vault_library').insert([{doc_type:currentFolderCode,title:file.name,description:currentFolderTitle,download_url:url,folder_code:currentFolderCode,storage_path:path}]);if(error)throw error;alert('✅ Document uploaded to '+currentFolderTitle);input.value='';await loadFolderContent()}catch(e){alert('Upload failed: '+e.message);input.value=''}}
+async function deleteAuditDocument(id,storagePath){if(!confirm('Delete this document permanently?'))return;try{if(storagePath)await db.storage.from('csms-documents').remove([storagePath]);const {error}=await db.from('vault_library').delete().eq('id',id);if(error)throw error;alert('🗑️ Document deleted.');await loadFolderContent()}catch(e){alert('Delete failed: '+e.message)}}
+function closeFolder(){document.getElementById('folderModal').classList.remove('open')}
+
+</script>
+</body></html>
