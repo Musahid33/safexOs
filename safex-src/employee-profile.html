@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Profile · SafetyOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-500:#3b82f6; --blue-600:#2563eb; --blue-700:#1d4ed8;
+    --gray-25:#fbfcfe; --gray-50:#f8fafc; --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+    --gray-400:#94a3b8; --gray-500:#64748b; --gray-600:#475569; --ink:#0f172a;
+    --green:#16a34a; --green-bg:#dcfce7; --orange:#d97706; --orange-bg:#fef3c7; --red:#dc2626; --red-bg:#fee2e2;
+    --white:#ffffff; --card:#ffffff; --page-bg:#f4f6fb; --border:#e6ebf2;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.03);
+    --shadow-md:0 8px 24px rgba(15,23,42,.07), 0 2px 6px rgba(15,23,42,.04);
+    --shadow-lg:0 20px 48px rgba(15,23,42,.14), 0 6px 16px rgba(15,23,42,.08);
+    --radius:16px; --radius-sm:10px;
+    --stripe-a:#f59e0b; --stripe-b:#0f172a;
+    --transition:260ms cubic-bezier(.4,0,.2,1);
+  }
+  html[data-theme="dark"]{
+    --gray-25:#0b1220; --gray-50:#0d1524; --gray-100:#111a2b; --gray-200:#1c2740; --gray-300:#28334d;
+    --gray-400:#4a5674; --gray-500:#8291b3; --gray-600:#aab7d1; --ink:#eef2fb;
+    --white:#101a2c; --card:#101a2c; --page-bg:#080d18; --border:#1d2841;
+    --blue-50:#0e1c38; --blue-100:#12274a;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+    --shadow-md:0 8px 24px rgba(0,0,0,.45);
+    --shadow-lg:0 24px 56px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  body,input,button,select{font-family:'Inter',system-ui,sans-serif;}
+  h1,h2,h3,.display{font-family:'Sora',system-ui,sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  body{
+    background:var(--page-bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    transition:background var(--transition), color var(--transition);
+  }
+  a{color:inherit;}
+  button{font:inherit; cursor:pointer;}
+
+  /* ===== Header ===== */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in srgb, var(--card) 88%, transparent);
+    backdrop-filter:blur(14px) saturate(160%);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{
+    max-width:640px; margin:0 auto; padding:8px 12px;
+    display:flex; align-items:center; gap:10px; justify-content:space-between;
+  }
+  .breadcrumb{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--gray-500); white-space:nowrap;}
+  .breadcrumb b{color:var(--ink); font-weight:600;}
+  .breadcrumb .sep{color:var(--gray-300);}
+  .topbar-actions{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .icon-btn{
+    display:inline-flex; align-items:center; gap:5px;
+    background:var(--white); border:1px solid var(--border);
+    padding:6px 10px; border-radius:8px; font-size:11.5px; font-weight:600; color:var(--gray-600);
+    transition:all var(--transition); white-space:nowrap;
+  }
+  .icon-btn:hover{border-color:var(--blue-500); color:var(--blue-600); box-shadow:var(--shadow-sm); transform:translateY(-1px);}
+  .icon-btn.primary{background:var(--blue-600); color:#fff; border-color:var(--blue-600);}
+  .icon-btn.primary:hover{background:var(--blue-700); color:#fff;}
+  .theme-toggle{
+    width:30px; height:30px; border-radius:8px; border:1px solid var(--border);
+    background:var(--white); display:flex; align-items:center; justify-content:center;
+    transition:all var(--transition); font-size:13px;
+  }
+  .theme-toggle:hover{border-color:var(--blue-500); transform:translateY(-1px);}
+
+  /* ===== Layout ===== */
+  .page{max-width:640px; margin:0 auto; padding:12px;}
+  .layout{display:block;}
+
+  /* ===== Profile Card ===== */
+  .profile-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow-md); overflow:hidden; position:relative;
+  }
+  .profile-hero{
+    background:linear-gradient(120deg, var(--blue-600), var(--blue-700) 60%, #1e3a8a);
+    height:56px; position:relative; overflow:hidden;
+  }
+  .profile-hero::after{
+    content:""; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(45deg, rgba(255,255,255,.08) 0 10px, transparent 10px 20px);
+    opacity:.5;
+  }
+  .profile-body{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding:0 20px 22px; margin-top:-46px;
+  }
+  .avatar-wrap{position:relative; margin-bottom:12px;}
+  .avatar{
+    width:96px; height:96px; border-radius:50%; border:4px solid var(--card);
+    background:linear-gradient(135deg,var(--blue-500),var(--blue-700));
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-md);
+    color:#fff; font-family:'Sora'; font-weight:700; font-size:26px;
+    overflow:hidden;
+  }
+  .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+  .avatar svg{width:44px; height:44px;}
+  .status-badge{
+    position:absolute; bottom:3px; right:3px; width:14px; height:14px; border-radius:50%;
+    border:2px solid var(--card); background:var(--green);
+  }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700;
+    padding:3px 9px; border-radius:999px; background:var(--green-bg); color:var(--green);
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .status-pill.inactive{background:var(--red-bg); color:var(--red);}
+  .status-pill .dot{width:7px; height:7px; border-radius:50%; background:currentColor;}
+
+  .emp-name{font-size:21px; font-weight:700; margin:0 0 2px;}
+  .emp-role{color:var(--blue-600); font-weight:600; font-size:12.5px; margin:0 0 8px;}
+  .profile-body .status-pill{margin-bottom:16px;}
+  .profile-details-wrap{width:100%; max-width:760px; margin-top:2px;}
+  .details-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 22px; text-align:left;}
+  @media(max-width:560px){.details-grid{grid-template-columns:1fr;}}
+  .detail-item{display:flex; align-items:flex-start; gap:9px;}
+  .detail-icon{
+    width:28px; height:28px; border-radius:8px; background:var(--blue-50); color:var(--blue-600);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;
+  }
+  .detail-label{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--gray-400); font-weight:600; margin-bottom:1px;}
+  .detail-value{font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.3;}
+  .detail-value.mono{font-weight:600;}
+
+  /* ===== Section divider ===== */
+  .section-title{
+    display:flex; align-items:center; gap:12px; margin:18px 0 12px;
+  }
+  .section-title h2{font-size:14.5px; margin:0; white-space:nowrap;}
+  .section-title .line{flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent);}
+
+  /* ===== KPI Cards ===== */
+  .kpi-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(96px,1fr)); gap:8px;
+  }
+  .kpi-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:10px; box-shadow:var(--shadow-sm); cursor:pointer; text-align:left;
+    transition:transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    display:flex; flex-direction:column; gap:6px; position:relative; overflow:hidden;
+  }
+  .kpi-card::before{
+    content:""; position:absolute; inset:0; opacity:0; background:linear-gradient(135deg, var(--blue-50), transparent 60%);
+    transition:opacity var(--transition);
+  }
+  .kpi-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--blue-300, var(--blue-500));}
+  .kpi-card:hover::before{opacity:1;}
+  .kpi-card:active{transform:translateY(-1px) scale(.985);}
+  .kpi-icon{
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; position:relative; z-index:1;
+  }
+  .kpi-number{font-family:'Sora'; font-size:17px; font-weight:700; line-height:1; position:relative; z-index:1;}
+  .kpi-title{font-size:9.5px; color:var(--gray-500); font-weight:600; position:relative; z-index:1; line-height:1.2;}
+
+  /* ===== Modal ===== */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(8,13,24,.55); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; z-index:100;
+    opacity:0; pointer-events:none; transition:opacity var(--transition);
+    padding:20px;
+  }
+  .modal-overlay.open{opacity:1; pointer-events:auto;}
+  .modal{
+    background:var(--card); border-radius:16px; width:min(680px,100%); max-height:88vh;
+    display:flex; flex-direction:column; box-shadow:var(--shadow-lg); border:1px solid var(--border);
+    transform:translateY(24px) scale(.97); opacity:0; transition:all var(--transition);
+  }
+  .modal-overlay.open .modal{transform:translateY(0) scale(1); opacity:1;}
+  .modal-header{
+    padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; background:var(--card); border-radius:16px 16px 0 0; z-index:2;
+  }
+  .modal-title{display:flex; align-items:center; gap:9px;}
+  .modal-title h3{margin:0; font-size:14.5px;}
+  .modal-close{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--gray-50);
+    display:flex; align-items:center; justify-content:center; color:var(--gray-500); font-size:13px;
+    transition:all var(--transition);
+  }
+  .modal-close:hover{background:var(--red-bg); color:var(--red); border-color:transparent;}
+  .modal-tabs{display:flex; gap:4px; padding:10px 18px 0; overflow-x:auto; border-bottom:1px solid var(--border);}
+  .modal-tab{
+    padding:7px 12px; border-radius:7px 7px 0 0; font-size:11px; font-weight:600; color:var(--gray-500);
+    white-space:nowrap; border-bottom:2px solid transparent; transition:all var(--transition);
+  }
+  .modal-tab.active{color:var(--blue-600); background:var(--blue-50); border-bottom-color:var(--blue-600);}
+  .modal-body{overflow:auto; padding:8px 18px 4px; flex:1;}
+  table{width:100%; border-collapse:collapse; font-size:11.5px;}
+  thead th{
+    text-align:left; padding:8px 9px; font-size:9.5px; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--gray-400); font-weight:700; border-bottom:1px solid var(--border); white-space:nowrap;
+    cursor:pointer; user-select:none; position:sticky; top:0; background:var(--card);
+  }
+  thead th:hover{color:var(--blue-600);}
+  thead th .arrow{opacity:.4; margin-left:3px; font-size:9px;}
+  tbody td{padding:9px; border-bottom:1px solid var(--border); color:var(--gray-600); vertical-align:top;}
+  tbody tr:hover{background:var(--gray-50);}
+  .tag{padding:2px 8px; border-radius:999px; font-size:10px; font-weight:700; white-space:nowrap; display:inline-block;}
+  .tag.risk-high, .tag.status-open, .tag.status-expired{background:var(--red-bg); color:var(--red);}
+  .tag.risk-medium, .tag.status-progress, .tag.status-expiring{background:var(--orange-bg); color:var(--orange);}
+  .tag.risk-low, .tag.status-closed, .tag.status-valid{background:var(--green-bg); color:var(--green);}
+  .cert-btn{
+    font-size:10px; font-weight:700; color:var(--blue-600); background:var(--blue-50);
+    padding:4px 9px; border-radius:7px; border:1px solid transparent; white-space:nowrap;
+    transition:all var(--transition);
+  }
+  .cert-btn:hover{background:var(--blue-600); color:#fff;}
+  .empty-state{padding:40px 16px; text-align:center; color:var(--gray-400);}
+  .modal-footer{
+    display:flex; align-items:center; justify-content:space-between; padding:10px 18px;
+    border-top:1px solid var(--border); font-size:11px; color:var(--gray-500);
+  }
+  .pager{display:flex; gap:5px;}
+  .pager button{
+    width:25px; height:25px; border-radius:7px; border:1px solid var(--border); background:var(--card);
+    color:var(--gray-600); font-size:11px; font-weight:600; transition:all var(--transition);
+  }
+  .pager button.active{background:var(--blue-600); color:#fff; border-color:var(--blue-600);}
+  .pager button:hover:not(.active){border-color:var(--blue-500); color:var(--blue-600);}
+  .pager button:disabled{opacity:.35; cursor:default;}
+
+  /* Skeleton */
+  .skel{background:linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; border-radius:6px;}
+  @keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:0 0;}}
+
+  @media print{
+    .topbar, .kpi-card, .modal-overlay{display:none !important;}
+    body{background:#fff;}
+    .profile-card{box-shadow:none; border:1px solid #ddd;}
+  }
+
+  ::selection{background:var(--blue-200,#bfdbfe); color:var(--ink);}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important; animation:none !important;}}
+</style>
+  <script src="/assets/vendor/supabase.min.js"></script>
+<style>
+    /* ══════ DESKTOP PRO ENHANCEMENTS (v33 — full page desktop, mobile unchanged) ══════ */
+    @media (min-width: 1024px) {
+        body { width: 100% !important; max-width: none !important; }
+        .topbar-inner { max-width: 1400px !important; }
+        .page { max-width: 1280px !important; padding: 28px !important; }
+        .details-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 16px 28px !important; }
+        .profile-body { grid-template-columns: 140px 1fr !important; }
+        .profile-card { padding: 28px !important; }
+        .stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    }
+</style>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Safex">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner" style="justify-content:center">
+    <div class="topbar-actions">
+      <a class="icon-btn" href="/index.html" style="text-decoration:none">🏠 Home</a>
+      <button class="icon-btn primary" onclick="downloadPassport()">⬇️ Download Passport</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <div class="profile-hero"></div>
+    <div class="profile-body">
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatarInitials">
+          <!-- 👤 DUMMY PROFILE ICON (photo nahi toh ye dikhega) -->
+          <svg id="dummyAvatarIcon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path>
+          </svg>
+        </div>
+        <div class="status-badge"></div>
+      </div>
+      <h1 class="emp-name" id="employeeName">Employee Profile</h1>
+      <p class="emp-role" id="employeeRole">—</p>
+      <div id="profileNotFoundBanner" class="hidden" style="background:#fee2e2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:10px 14px;font-size:12px;font-weight:700;margin:8px 0 4px;text-align:center;line-height:1.5"></div>
+      <span class="status-pill" id="employeeStatusPill"><span class="dot"></span> Active</span>
+      <div class="profile-details-wrap">
+        <div class="details-grid">
+          <div class="detail-item"><div class="detail-icon">🆔</div><div><div class="detail-label">Employee Code</div><div class="detail-value mono" id="employeeCode">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">💼</div><div><div class="detail-label">Designation</div><div class="detail-value" id="employeeDesignation">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">🏢</div><div><div class="detail-label">Department</div><div class="detail-value" id="employeeDepartment">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">⭐</div><div><div class="detail-label">Skill Grade</div><div class="detail-value" id="employeeSkill">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">🩸</div><div><div class="detail-label">Blood Group</div><div class="detail-value" id="employeeBlood">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">🎂</div><div><div class="detail-label">Date of Birth</div><div class="detail-value" id="employeeDob">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">📅</div><div><div class="detail-label">Joining Date</div><div class="detail-value" id="employeeJoining">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">📱</div><div><div class="detail-label">Mobile Number</div><div class="detail-value mono" id="employeeMobile">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">🚨</div><div><div class="detail-label">Emergency Contact</div><div class="detail-value" id="employeeEmergency">—</div></div></div>
+          <div class="detail-item"><div class="detail-icon">📍</div><div><div class="detail-label">Address</div><div class="detail-value" id="employeeAddress">—</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="section-title"><h2>Safety Performance</h2><div class="line"></div></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span id="modalIcon" style="font-size:20px;"></span>
+        <h3 id="modalTitle">Near Miss Records</h3>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-tabs" id="modalTabs"></div>
+    <div class="modal-body">
+      <table>
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <span id="resultCount">0 records</span>
+      <div class="pager" id="pager"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ MOCK DATABASE (keyed by Employee Code) ============ */
+const DATA = {
+  nearmiss: {
+    icon:'⚠️', title:'Near Miss Reported', color:'#2563eb',
+    cols:['Date','Near Miss ID','Location','Category','Risk Level','Description','Status','Corrective Action','Closed By'],
+    rows:[]
+  },
+  hazard: {
+    icon:'🚧', title:'Hazard Reported', color:'#d97706',
+    cols:['Date','Hazard ID','Area','Hazard Type','Risk Rating','Description','Action Taken','Closed Date'],
+    rows:[]
+  },
+  reward: {
+    icon:'🏆', title:'Rewards Received', color:'#16a34a',
+    cols:['Date','Reward Name','Reason','Given By','Certificate'],
+    rows:[]
+  },
+  violation: {
+    icon:'🚫', title:'Consequences', color:'#dc2626',
+    cols:['Date','Type of Consequence','Observation','Description','Warning Level','Action Taken'],
+    rows:[]
+  },
+  training: {
+    icon:'🎓', title:'Trainings Attended', color:'#0ea5e9',
+    cols:['Date','Training Name','Trainer','Duration','Score','Certificate','Remarks'],
+    rows:[]
+  },
+  ppe: {
+    icon:'🦺', title:'PPE Issued', color:'#7c3aed',
+    cols:['PPE Name','Issue Date','Expiry Date','Next Due Date','Status'],
+    rows:[]
+  }
+};
+DATA.suggestion = {
+  icon:'💡', title:'Safety Suggestions', color:'#0891b2',
+  cols:['Date','Suggestion','Area','Status','Reviewed By'],
+  rows:[]
+};
+
+const KPI_ORDER = [
+  {key:'nearmiss', label:'Near Miss Reported', icon:'⚠️', color:'#2563eb', count:0},
+  {key:'hazard', label:'Hazard Reported', icon:'🚧', color:'#d97706', count:0},
+  {key:'reward', label:'Rewards Received', icon:'🏆', color:'#16a34a', count:0},
+  {key:'violation', label:'Consequences', icon:'🚫', color:'#dc2626', count:0},
+  {key:'training', label:'Trainings Attended', icon:'🎓', color:'#0ea5e9', count:0},
+  {key:'suggestion', label:'Safety Suggestions', icon:'💡', color:'#0891b2', count:0},
+  {key:'ppe', label:'PPE Issued', icon:'🦺', color:'#7c3aed', count:0},
+];
+
+/* ============ RENDER: KPI CARDS ============ */
+const kpiGrid = document.getElementById('kpiGrid');
+KPI_ORDER.forEach(k=>{
+  const card = document.createElement('button');
+  card.className = 'kpi-card';
+  card.setAttribute('data-kpi-key', k.key);
+  card.innerHTML = `
+    <div class="kpi-icon" style="background:${hexToSoft(k.color)}; color:${k.color};">${k.icon}</div>
+    <div class="kpi-number">${k.count}</div>
+    <div class="kpi-title">${k.label}</div>`;
+  card.onclick = ()=>openModal(k.key);
+  kpiGrid.appendChild(card);
+});
+function hexToSoft(hex){
+  const c = hex.replace('#','');
+  const r=parseInt(c.substr(0,2),16), g=parseInt(c.substr(2,2),16), b=parseInt(c.substr(4,2),16);
+  return `rgba(${r},${g},${b},0.14)`;
+}
+
+/* ============ MODAL LOGIC ============ */
+let state = { category:'nearmiss', sortCol:0, sortDir:1, page:1, pageSize:5 };
+
+const overlay = document.getElementById('modalOverlay');
+const modalTabs = document.getElementById('modalTabs');
+const tableHead = document.getElementById('tableHead');
+const tableBody = document.getElementById('tableBody');
+const pager = document.getElementById('pager');
+const resultCount = document.getElementById('resultCount');
+const modalTitle = document.getElementById('modalTitle');
+const modalIcon = document.getElementById('modalIcon');
+
+const TAB_KEYS = ['all','nearmiss','hazard','training','reward','violation','ppe'];
+const TAB_LABELS = {all:'All', nearmiss:'Near Miss', hazard:'Hazard', training:'Training', reward:'Reward', violation:'Consequence', ppe:'PPE'};
+
+function buildTabs(){
+  modalTabs.innerHTML = '';
+  TAB_KEYS.forEach(k=>{
+    const t = document.createElement('div');
+    t.className = 'modal-tab' + (state.category===k?' active':'');
+    t.textContent = TAB_LABELS[k];
+    t.onclick = ()=>{ state.category=k; state.page=1; state.sortCol=0; state.sortDir=1; renderAll(); };
+    modalTabs.appendChild(t);
+  });
+}
+
+function getRowsForCategory(cat){
+  if(cat==='all'){
+    let combined = [];
+    Object.keys(DATA).forEach(key=>{
+      DATA[key].rows.forEach(r=>{
+        combined.push({date:r[0], type:DATA[key].title, ref:r[1]||r[0], status: r.find(c=>typeof c==='string'&&c.includes('|')) || '—', src:key});
+      });
+    });
+    return {cols:['Date','Type','Reference','Status'], rows: combined.map(c=>[c.date,c.type,c.ref,c.status])};
+  }
+  const d = DATA[cat];
+  return {cols:d.cols, rows:d.rows};
+}
+
+function parseCell(val){
+  if(typeof val==='string' && val.includes('|')){
+    const [cls,label] = val.split('|');
+    return `<span class="tag ${cls}">${label}</span>`;
+  }
+  if(val==='cert'){
+    return `<button class="cert-btn" onclick="alert('Opening certificate preview…')">View Certificate</button>`;
+  }
+  return val;
+}
+
+function renderTable(){
+  const {cols, rows} = getRowsForCategory(state.category);
+  tableHead.innerHTML = cols.map((c,i)=>`<th onclick="sortBy(${i})">${c} <span class="arrow">${state.sortCol===i ? (state.sortDir===1?'▲':'▼') : '↕'}</span></th>`).join('');
+
+  let filtered = rows.slice();
+
+  filtered.sort((a,b)=>{
+    const A=(a[state.sortCol]||'').toString().split('|').pop();
+    const B=(b[state.sortCol]||'').toString().split('|').pop();
+    return A.localeCompare(B) * state.sortDir;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length/state.pageSize));
+  state.page = Math.min(state.page, totalPages);
+  const start = (state.page-1)*state.pageSize;
+  const pageRows = filtered.slice(start, start+state.pageSize);
+
+  if(pageRows.length===0){
+    tableBody.innerHTML = `<tr><td colspan="${cols.length}"><div class="empty-state">${rows.length === 0 ? '📭 No records found in database yet' : '🔍 No records match your filters'}</div></td></tr>`;
+  } else {
+    tableBody.innerHTML = pageRows.map(r=>`<tr>${r.map(c=>`<td>${parseCell(c)}</td>`).join('')}</tr>`).join('');
+  }
+
+  resultCount.textContent = `${filtered.length} record${filtered.length!==1?'s':''}`;
+  renderPager(totalPages);
+}
+
+function renderPager(totalPages){
+  pager.innerHTML = '';
+  const prev = document.createElement('button');
+  prev.textContent='‹'; prev.disabled = state.page===1;
+  prev.onclick = ()=>{ state.page--; renderTable(); };
+  pager.appendChild(prev);
+  for(let i=1;i<=totalPages;i++){
+    const b=document.createElement('button');
+    b.textContent=i; if(i===state.page) b.classList.add('active');
+    b.onclick=()=>{ state.page=i; renderTable(); };
+    pager.appendChild(b);
+  }
+  const next=document.createElement('button');
+  next.textContent='›'; next.disabled = state.page===totalPages;
+  next.onclick=()=>{ state.page++; renderTable(); };
+  pager.appendChild(next);
+}
+
+function sortBy(i){
+  if(state.sortCol===i) state.sortDir *= -1; else { state.sortCol=i; state.sortDir=1; }
+  renderTable();
+}
+
+function renderAll(){
+  buildTabs();
+  const meta = DATA[state.category] || {icon:'📋', title:'All Safety Records'};
+  modalIcon.textContent = meta.icon || '📋';
+  modalTitle.textContent = (meta.title || 'All Safety Records');
+  renderTable();
+}
+
+function openModal(category){
+  state = {...state, category, sortCol:0, sortDir:1, page:1};
+  renderAll();
+  overlay.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  overlay.classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('modalClose').onclick = closeModal;
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+/* ============ THEME TOGGLE — removed (topbar cleanup) ============ */
+/* ✏️ OFFICER EDIT ENTRY (v64) — officer login ho toh edit button dikhe */
+(function () {
+  const officerId = localStorage.getItem('safex_officer_id');
+  const btn = document.getElementById('editProfileBtn');
+  if (officerId && btn) btn.style.display = 'inline-flex';
+  window.openOfficerEdit = function () {
+    const params = new URLSearchParams(window.location.search);
+    const code = (params.get('emp_code') || params.get('employee_id') || '').trim().toUpperCase();
+    if (!code) { alert('Employee code not found.'); return; }
+    window.location.href = '/officer-dashboard.html?edit_emp=' + encodeURIComponent(code);
+  };
+})();
+
+/* ============ PASSPORT DOWNLOAD (stub) ============ */
+/* ═══════════════════════════════════════════════════════════════
+   🛂 SAFETY PASSPORT — single-page PNG (perfect image/PDF form)
+   SVG bana ke canvas se high-res PNG download hota hai
+   ═══════════════════════════════════════════════════════════════ */
+function escXml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function passportPhotoDataUrl(){
+  const avatar = document.getElementById('avatarInitials');
+  const img = avatar ? avatar.querySelector('img') : null;
+  if (img && img.src) {
+    try {
+      const r = await fetch(img.src, { mode:'cors' });
+      const b = await r.blob();
+      return await new Promise(function(res){
+        const fr = new FileReader();
+        fr.onload = function(){ res(fr.result); };
+        fr.onerror = function(){ res(null); };
+        fr.readAsDataURL(b);
+      });
+    } catch(e){ return null; }
+  }
+  return null;
+}
+
+async function downloadPassport(){
+  if (window.__safexProfileNotFound) { alert('❌ Employee profile not found — passport cannot be generated. Please check the Employee Code.'); return; }
+  const btn = document.querySelector('button[onclick="downloadPassport()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating...'; }
+
+  const gv = function(id){ const el = document.getElementById(id); return el ? (el.textContent || '').trim() : ''; };
+  const name = gv('employeeName') || 'Employee';
+  const role = gv('employeeRole') || '—';
+  const code = gv('employeeCode') || '—';
+  const dept = gv('employeeDepartment') || '—';
+  const blood = gv('employeeBlood') || '—';
+  const dob = gv('employeeDob') || '—';
+  const joining = gv('employeeJoining') || '—';
+  const mobile = gv('employeeMobile') || '—';
+  const emergency = gv('employeeEmergency') || '—';
+  const address = gv('employeeAddress') || '—';
+  const statusEl = document.getElementById('employeeStatusPill');
+  const status = statusEl ? (statusEl.textContent || 'Active').trim() : 'Active';
+  const today = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+  const photo = await passportPhotoDataUrl();
+
+  const W = 800, H = 1100;
+  const kpis = (typeof KPI_ORDER !== 'undefined' && KPI_ORDER) ? KPI_ORDER : [];
+
+  const detailRows = [
+    ['Department', dept], ['Blood Group', blood], ['Date of Birth', dob],
+    ['Joining Date', joining], ['Mobile', mobile], ['Emergency', emergency]
+  ];
+  const detailHtml = detailRows.map(function(d){
+    return '<g>' +
+      '<rect x="' + (d[0]==='Department'||d[0]==='Date of Birth'||d[0]==='Mobile' ? 60 : 420) + '" y="' + (d[0]==='Department'||d[0]==='Blood Group' ? 520 : d[0]==='Date of Birth'||d[0]==='Joining Date' ? 590 : 660) + '" width="320" height="52" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>' +
+      '<text x="' + (d[0]==='Department'||d[0]==='Date of Birth'||d[0]==='Mobile' ? 76 : 436) + '" y="' + (d[0]==='Department'||d[0]==='Blood Group' ? 538 : d[0]==='Date of Birth'||d[0]==='Joining Date' ? 608 : 678) + '" font-size="10" font-weight="700" fill="#64748b" font-family="Arial,sans-serif" letter-spacing="1">' + escXml(d[0].toUpperCase()) + '</text>' +
+      '<text x="' + (d[0]==='Department'||d[0]==='Date of Birth'||d[0]==='Mobile' ? 76 : 436) + '" y="' + (d[0]==='Department'||d[0]==='Blood Group' ? 560 : d[0]==='Date of Birth'||d[0]==='Joining Date' ? 630 : 700) + '" font-size="14" font-weight="700" fill="#0f172a" font-family="Arial,sans-serif">' + escXml(d[1] || '—').slice(0, 30) + '</text>' +
+    '</g>';
+  }).join('');
+
+  const kpiHtml = kpis.map(function(k, i){
+    const col = i % 4, row = Math.floor(i / 4);
+    const x = 60 + col * 177, y = 790 + row * 78;
+    return '<g>' +
+      '<rect x="' + x + '" y="' + y + '" width="160" height="64" rx="12" fill="#f8fafc" stroke="#e2e8f0"/>' +
+      '<text x="' + (x + 80) + '" y="' + (y + 28) + '" text-anchor="middle" font-size="20" font-weight="800" fill="#1d4ed8" font-family="Arial,sans-serif">' + (k.count != null ? k.count : '—') + '</text>' +
+      '<text x="' + (x + 80) + '" y="' + (y + 48) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b" font-family="Arial,sans-serif">' + escXml(String(k.label||'').toUpperCase().slice(0, 22)) + '</text>' +
+    '</g>';
+  }).join('');
+
+  const photoBlock = photo
+    ? '<clipPath id="pclip"><circle cx="400" cy="265" r="92"/></clipPath>' +
+      '<g clip-path="url(#pclip)"><image href="' + photo + '" x="308" y="173" width="184" height="184" preserveAspectRatio="xMidYMid slice"/></g>' +
+      '<circle cx="400" cy="265" r="96" fill="none" stroke="#ffffff" stroke-width="8"/>' +
+      '<circle cx="400" cy="265" r="100" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6 6"/>'
+    : '<clipPath id="pclip"><circle cx="400" cy="265" r="92"/></clipPath>' +
+      '<circle cx="400" cy="265" r="92" fill="#dbeafe"/>' +
+      '<g stroke="#2563eb" stroke-width="2.4" fill="none" stroke-linecap="round"><circle cx="400" cy="238" r="28"/><path d="M340 330c0-30 27-48 60-48s60 18 60 48"/></g>' +
+      '<circle cx="400" cy="265" r="96" fill="none" stroke="#ffffff" stroke-width="8"/>' +
+      '<circle cx="400" cy="265" r="100" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6 6"/>';
+
+  const statusColor = /inactive|not found/i.test(status) ? '#dc2626' : '#16a34a';
+
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+    '<defs><linearGradient id="hd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>' +
+
+    // Header band
+    '<rect width="800" height="150" fill="url(#hd)"/>' +
+    '<rect width="800" height="150" fill="rgba(255,255,255,0.04)"/>' +
+    '<text x="40" y="62" font-size="30" font-weight="900" fill="#ffffff" font-family="Arial,sans-serif">SAFEX</text>' +
+    '<text x="40" y="88" font-size="11" font-weight="700" fill="#fbbf24" letter-spacing="4" font-family="Arial,sans-serif">SAFETY PASSPORT</text>' +
+    '<text x="760" y="52" text-anchor="end" font-size="11" fill="#cbd5e1" font-family="Arial,sans-serif">EMVEESS INFRAVENTURES</text>' +
+    '<text x="760" y="74" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Arial,sans-serif">Tata Steel · West Bokaro</text>' +
+    '<text x="760" y="120" text-anchor="end" font-size="11" fill="#cbd5e1" font-family="Arial,sans-serif">Issued: ' + escXml(today) + '</text>' +
+
+    // Photo
+    photoBlock +
+
+    // Status dot
+    '<circle cx="478" cy="205" r="13" fill="' + statusColor + '" stroke="#ffffff" stroke-width="4"/>' +
+    '<text x="400" y="402" text-anchor="middle" font-size="30" font-weight="800" fill="#0f172a" font-family="Arial,sans-serif">' + escXml(name).slice(0, 28) + '</text>' +
+    '<text x="400" y="430" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb" font-family="Arial,sans-serif">' + escXml(role).slice(0, 44) + '</text>' +
+    '<rect x="330" y="446" width="140" height="30" rx="15" fill="#eff6ff" stroke="#bfdbfe"/>' +
+    '<text x="400" y="466" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8" font-family="Arial,sans-serif" letter-spacing="1">' + escXml(code) + '</text>' +
+
+    // Details
+    '<line x1="60" y1="500" x2="740" y2="500" stroke="#e2e8f0" stroke-width="2"/>' +
+    '<text x="60" y="492" font-size="10" font-weight="800" fill="#94a3b8" letter-spacing="3" font-family="Arial,sans-serif">PERSONAL DETAILS</text>' +
+    detailHtml +
+
+    // KPIs
+    '<line x1="60" y1="766" x2="740" y2="766" stroke="#e2e8f0" stroke-width="2"/>' +
+    '<text x="60" y="758" font-size="10" font-weight="800" fill="#94a3b8" letter-spacing="3" font-family="Arial,sans-serif">SAFETY PERFORMANCE</text>' +
+    kpiHtml +
+
+    // Address
+    '<text x="60" y="962" font-size="10" font-weight="800" fill="#94a3b8" letter-spacing="3" font-family="Arial,sans-serif">ADDRESS</text>' +
+    '<text x="60" y="984" font-size="12" fill="#334155" font-family="Arial,sans-serif">' + escXml(address || '—').slice(0, 70) + '</text>' +
+
+    // Footer band
+    '<rect y="1040" width="800" height="60" fill="#0f172a"/>' +
+    '<text x="40" y="1076" font-size="11" font-weight="700" fill="#ffffff" font-family="Arial,sans-serif">Powered by SafexOS · Musahid</text>' +
+    '<text x="760" y="1076" text-anchor="end" font-size="10" fill="#94a3b8" font-family="Arial,sans-serif">© 2026 · All Rights Reserved</text>' +
+    '</svg>';
+
+  try {
+    const img = new Image();
+    img.onload = function(){
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = W * scale;
+      canvas.height = H * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function(blob){
+        if (btn) { btn.disabled = false; btn.textContent = '⬇️ Download Passport'; }
+        if (!blob) { alert('Could not generate the image — please take a screenshot.'); return; }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Safety-Passport-' + String(code).replace(/[^A-Za-z0-9]/g, '-') + '.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, 'image/png', 0.95);
+    };
+    img.onerror = function(){
+      if (btn) { btn.disabled = false; btn.textContent = '⬇️ Download Passport'; }
+      alert('Could not generate the passport — please try again.');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  } catch(e){
+    if (btn) { btn.disabled = false; btn.textContent = '⬇️ Download Passport'; }
+    alert('Error: ' + e.message);
+  }
+}
+</script>
+
+<script>
+(async function loadEmployeeProfileFromCode() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedCode = (params.get('emp_code') || params.get('employee_id') || '').trim().toUpperCase();
+  if (!requestedCode) return;
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null && String(value).trim()) el.textContent = String(value);
+  };
+  const initials = name => String(name || 'EP').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+
+  // Always show the code that came from Employee Search, even if the database is unavailable.
+  setText('employeeCode', requestedCode);
+
+  // ⚠️ Supabase CDN load hone me waqt lag sakta hai — 3 retry, phir clear error
+  for (let attempt = 0; attempt < 3 && !window.supabase; attempt++) {
+    await new Promise(r => setTimeout(r, 800));
+  }
+  if (!window.supabase) {
+    setText('employeeName', '⚠️ Unable to verify employee');
+    setText('employeeRole', 'Database connection failed. Please check your internet connection and try again.');
+    const failPill = document.getElementById('employeeStatusPill');
+    if (failPill) { failPill.classList.add('inactive'); failPill.innerHTML = '<span class="dot"></span> Connection Failed'; }
+    const failBanner = document.getElementById('profileNotFoundBanner');
+    if (failBanner) { failBanner.classList.remove('hidden'); failBanner.textContent = '⚠️ Could not connect to the database. Please check your internet connection and try again.'; }
+    window.__safexProfileNotFound = true;
+    document.querySelectorAll('button[onclick="downloadPassport()"]').forEach(function (b) { b.style.display = 'none'; });
+    return;
+  }
+
+  try {
+    const client = window.supabase.createClient(
+      'https://ixfwhxjtajmrdndhtsub.supabase.co',
+      'sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-'
+    );
+    // 🔎 DO TABLES check — employee_profiles (Safex) + employees master (SafetyOS)
+    let data = null, master = null;
+    let lookupFailed = false;
+    try {
+      const r1 = await client.from('employee_profiles').select('*').eq('employee_id', requestedCode).maybeSingle();
+      if (r1.error) lookupFailed = true; else data = r1.data;
+    } catch (e) { lookupFailed = true; }
+    try {
+      const r2 = await client.from('employees').select('*').eq('employee_code', requestedCode).maybeSingle();
+      if (r2.error) lookupFailed = true; else master = r2.data;
+    } catch (e) { lookupFailed = true; }
+    if (lookupFailed) {
+      throw new Error('Employee lookup failed');
+    }
+
+    if (!data && !master) {
+      window.__safexProfileNotFound = true;
+      setText('employeeName', '❌ Employee Not Found');
+      setText('employeeRole', 'No profile record for ' + requestedCode);
+      setText('employeeDesignation', '—');
+      setText('employeeSkill', '—');
+      setText('employeeBlood', '—');
+      setText('employeeMobile', '—');
+      setText('employeeAddress', '—');
+      const missingStatus = document.getElementById('employeeStatusPill');
+      if (missingStatus) { missingStatus.classList.add('inactive'); missingStatus.innerHTML = '<span class="dot"></span> Not Found'; }
+      const banner = document.getElementById('profileNotFoundBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+        banner.innerHTML = '❌ <b>Employee Not Found</b><br><span style="font-weight:600;font-size:11px">No profile record found for Employee Code <b>' + requestedCode.replace(/</g, '&lt;') + '</b> in the database. Please check the code and try again.</span>';
+      }
+      document.querySelectorAll('button[onclick="downloadPassport()"]').forEach(function (b) { b.style.display = 'none'; });
+      return;
+    }
+
+    const src = data || {};
+    const m = master || {};
+    const fmtD = function (d) {
+      if (!d) return '—';
+      try { const dt = new Date(d); if (isNaN(dt.getTime())) return String(d).slice(0, 10); return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+      catch (e) { return String(d).slice(0, 10); }
+    };
+
+    // Department name (master.department_id → departments)
+    let deptName = '';
+    if (m.department_id) {
+      try {
+        const r3 = await client.from('departments').select('name').eq('id', m.department_id).maybeSingle();
+        deptName = (r3.data && r3.data.name) || '';
+      } catch (e) {}
+    }
+
+    const name = src.full_name || m.name || 'Employee Profile';
+    const designation = src.designation || m.designation || 'Employee';
+    const plant = src.active_plant_id ? ' · ' + src.active_plant_id : '';
+    setText('employeeName', name);
+    setText('employeeRole', designation + plant);
+    setText('employeeCode', src.employee_id || m.employee_code || requestedCode);
+    setText('employeeDesignation', designation);
+    setText('employeeDepartment', deptName || '—');
+    setText('employeeSkill', src.skill_grade || '—');
+    setText('employeeBlood', src.blood_group || m.blood_group || '—');
+    setText('employeeDob', fmtD(m.dob));
+    setText('employeeJoining', fmtD(m.joining_date));
+    setText('employeeMobile', src.mobile_number || m.phone || '—');
+    setText('employeeEmergency', m.emergency_name ? (m.emergency_name + ' · ' + m.emergency_phone) : '—');
+    setText('employeeAddress', src.address || '—');
+
+    // 📸 PHOTO — photo_url ho toh avatar me photo dikhao
+    const photoUrl = src.photo_url || m.photo_url || '';
+    const avatarEl = document.getElementById('avatarInitials');
+    if (avatarEl && photoUrl) {
+        avatarEl.innerHTML = '<img src="' + photoUrl.replace(/"/g, '&quot;') + '" alt="' + initials(name) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.remove();" />';
+    }
+
+    window.__safexProfileNotFound = false;
+    const bannerOK = document.getElementById('profileNotFoundBanner');
+    if (bannerOK) bannerOK.classList.add('hidden');
+    document.querySelectorAll('button[onclick="downloadPassport()"]').forEach(function (b) { b.style.display = ''; });
+
+    const active = String(src.status || 'Active').toLowerCase() !== 'inactive';
+    const statusPill = document.getElementById('employeeStatusPill');
+    if (statusPill) {
+      statusPill.classList.toggle('inactive', !active);
+      statusPill.innerHTML = '<span class="dot"></span> ' + (active ? 'Active' : 'Inactive');
+    }
+  } catch (error) {
+    console.warn('Employee profile lookup unavailable:', error);
+    setText('employeeName', '⚠️ Unable to verify employee');
+    setText('employeeRole', 'Could not load the profile. Please check your connection and try again.');
+    const errPill = document.getElementById('employeeStatusPill');
+    if (errPill) { errPill.classList.add('inactive'); errPill.innerHTML = '<span class="dot"></span> Error'; }
+    const errBanner = document.getElementById('profileNotFoundBanner');
+    if (errBanner) { errBanner.classList.remove('hidden'); errBanner.textContent = '⚠️ Could not load the profile. Please check your connection and try again.'; }
+    window.__safexProfileNotFound = true;
+    document.querySelectorAll('button[onclick="downloadPassport()"]').forEach(function (b) { b.style.display = 'none'; });
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   📡 LIVE EMPLOYEE DATA PATCH (v58)
+   - DB se REAL data load karta hai is employee ke liye
+   - nearmiss, hazard, reward, consequence, training, suggestion, ppe
+   - DB me data hai → REAL rows dikhte hain; nahi hai → static fallback
+   - KPI counts bhi live update
+   ═══════════════════════════════════════════════════════════════ */
+(async function patchLiveEmployeeData() {
+  const params = new URLSearchParams(window.location.search);
+  const empCode = (params.get('emp_code') || params.get('employee_id') || '').trim().toUpperCase();
+  if (!empCode || !window.supabase) return;
+
+  const client = window.supabase.createClient(
+    'https://ixfwhxjtajmrdndhtsub.supabase.co',
+    'sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-'
+  );
+
+  const fmt = (d) => {
+    if (!d) return '—';
+    try {
+      const dt = new Date(d);
+      if (isNaN(dt.getTime())) return String(d).slice(0, 10);
+      return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) { return String(d).slice(0, 10); }
+  };
+  const risk = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (v.includes('critical')) return 'risk-critical|Critical';
+    if (v.includes('high')) return 'risk-high|High';
+    if (v.includes('medium') || v.includes('mid')) return 'risk-medium|Medium';
+    if (v.includes('low')) return 'risk-low|Low';
+    return 'risk-low|N/A';
+  };
+  const statusTone = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (v.includes('closed') || v.includes('resolved') || v.includes('verify')) return 'status-closed|Closed';
+    if (v.includes('progress') || v.includes('investigat') || v.includes('rca') || v.includes('pending')) return 'status-progress|In Progress';
+    return 'status-open|Open';
+  };
+
+  try {
+    // ── SAFETY REPORTS (near miss + hazard + suggestion) ──
+    const { data: reports } = await client.from('safety_reports')
+      .select('*').eq('employee_id', empCode).order('id', { ascending: false });
+
+    const nmRows = [];
+    const hzRows = [];
+    const sgRows = [];
+    (reports || []).forEach(function (r) {
+      const t = String(r.report_type || '');
+      if (t.indexOf('Near Miss') === 0) {
+        nmRows.push([fmt(r.date_time || r.submitted_at), 'NM-' + r.id, r.location || '—', t.replace('Near Miss', '').trim() || 'General', risk(r.severity_rating).split('|')[1], r.description || '—', statusTone(r.status), r.immediate_action || '—']);
+      } else if (t === 'Hazard') {
+        hzRows.push([fmt(r.date_time || r.submitted_at), 'HZ-' + r.id, r.location || '—', 'Hazard', risk(r.severity_rating).split('|')[1], r.description || '—', r.immediate_action || '—', statusTone(r.status).split('|')[1]]);
+      } else if (t.indexOf('Suggestion') >= 0) {
+        sgRows.push([fmt(r.date_time || r.submitted_at), r.description || '—', r.location || '—', statusTone(r.status), 'Safety Officer']);
+      }
+    });
+
+    // ── REWARDS ──
+    const { data: rewards } = await client.from('employee_rewards')
+      .select('*').eq('employee_id', empCode).order('id', { ascending: false });
+    const rwRows = (rewards || []).map(function (r) {
+      return [fmt(r.reward_date || r.created_at), r.reward_type || 'Reward', r.reason || '—', 'Safety Officer', 'cert'];
+    });
+
+    // ── CONSEQUENCES (violations) ──
+    const { data: viols } = await client.from('employee_violations')
+      .select('*').eq('employee_id', empCode).order('id', { ascending: false });
+    const vlRows = (viols || []).map(function (r) {
+      const sev = String(r.severity || '').toLowerCase();
+      const level = sev.includes('critical') ? 'risk-critical|Level 3' : sev.includes('major') ? 'risk-medium|Level 2' : 'risk-low|Level 1';
+      return [fmt(r.violation_date || r.created_at), r.violation_type || 'Consequence', r.description || '—', r.description || '—', level, r.action_taken || '—'];
+    });
+
+    // ── TRAININGS (employee_trainings + vault_training attendees) ──
+    const trRows = [];
+    try {
+      const { data: et } = await client.from('employee_trainings').select('*').eq('employee_id', empCode);
+      (et || []).forEach(function (r) {
+        trRows.push([fmt(r.training_date), r.program || r.title || 'Training', 'Internal Trainer', '—', r.score ? r.score + '%' : '—', r.certificate_no || 'cert', '—']);
+      });
+    } catch (e) {}
+    if (!trRows.length) {
+      try {
+        const { data: vt } = await client.from('vault_training').select('*');
+        (vt || []).forEach(function (rec) {
+          let att = rec.attendees;
+          if (typeof att === 'string') { try { att = JSON.parse(att); } catch (_) { att = []; } }
+          if (Array.isArray(att) && att.some(function (a) { return String(a.emp_code || a.employee_id || '').toUpperCase() === empCode; })) {
+            trRows.push([fmt(rec.date), rec.topic || 'Training', rec.trainer_name || 'Internal', '—', '—', 'cert', '—']);
+          }
+        });
+      } catch (e) {}
+    }
+
+    // ── PPE ISSUES ──
+    const ppeRows = [];
+    try {
+      const { data: ppe } = await client.from('ppe_issues').select('*').eq('employee_id', empCode).order('id', { ascending: false });
+      (ppe || []).forEach(function (r) {
+        ppeRows.push([r.item || 'PPE', fmt(r.issue_date), fmt(r.expiry_date), fmt(r.expiry_date), 'status-valid|' + (r.status || 'Issued')]);
+      });
+    } catch (e) {}
+
+    // ── PATCH DATA (live rows > static fallback) ──
+    DATA.nearmiss.rows = nmRows;
+    DATA.hazard.rows = hzRows;
+    DATA.reward.rows = rwRows;
+    DATA.violation.rows = vlRows;
+    DATA.training.rows = trRows;
+    DATA.suggestion.rows = sgRows;
+    DATA.ppe.rows = ppeRows;
+
+    // ── KPI COUNTS live ──
+    const counts = {
+      nearmiss: nmRows.length || (reports || []).filter(function (r) { return String(r.report_type || '').indexOf('Near Miss') === 0; }).length,
+      hazard: hzRows.length || (reports || []).filter(function (r) { return r.report_type === 'Hazard'; }).length,
+      reward: rwRows.length,
+      violation: vlRows.length,
+      training: trRows.length,
+      suggestion: sgRows.length,
+      ppe: ppeRows.length
+    };
+    KPI_ORDER.forEach(function (k) {
+      k.count = counts[k.key];
+    });
+
+    // Re-render KPI cards agar already render ho chuke hain
+    const kpiGrid = document.getElementById('kpiGrid');
+    if (kpiGrid) {
+      KPI_ORDER.forEach(function (k) {
+        const el = kpiGrid.querySelector('[data-kpi-key="' + k.key + '"] .kpi-number');
+        if (el) el.textContent = k.count;
+      });
+    }
+  } catch (e) {
+    console.warn('Live employee data patch unavailable — static fallback:', e.message);
+  }
+})();
+
+</script>
+<script>
+if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); }); }
+</script>
+<script src="/i18n.js"></script>
+<script src="/lang.js"></script>
+<script>
+window.__SX_DICT_OR__ = {
+  "Employee Profile": "କର୍ମଚାରୀ ପ୍ରୋଫାଇଲ", "Safety Performance": "ସୁରକ୍ଷା ପ୍ରଦର୍ଶନ",
+  "Near Miss Records": "ନିୟର ମିସ ରେକର୍ଡ", "Employee Code": "କର୍ମଚାରୀ କୋଡ",
+  "Name": "ନାମ", "Designation": "ପଦବୀ", "Department": "ବିଭାଗ",
+  "Blood Group": "ରକ୍ତ ବର୍ଗ", "Date of Birth": "ଜନ୍ମ ତାରିଖ",
+  "Joining Date": "ଯୋଗଦାନ ତାରିଖ", "Mobile Number": "ମୋବାଇଲ ନମ୍ବର", "Phone": "ଫୋନ",
+  "Emergency Contact": "ଜରୁରୀକାଳୀନ ଯୋଗାଯୋଗ", "Address": "ଠିକଣା",
+  "Skill Grade": "ଦକ୍ଷତା ଗ୍ରେଡ", "Safety Supervisor": "ସୁରକ୍ଷା ସୁପରଭାଇଜର",
+  "View Certificate": "ପ୍ରମାଣପତ୍ର ଦେଖନ୍ତୁ", "Dashboard": "ଡ୍ୟାସବୋର୍ଡ",
+  "Employees": "କର୍ମଚାରୀ", "Active": "ସକ୍ରିୟ", "Inactive": "ନିଷ୍କ୍ରିୟ",
+  "Status": "ସ୍ଥିତି", "Hazard Reported": "ବିପଦ ରିପୋର୍ଟ",
+  "Near Miss Reported": "ନିୟର ମିସ ରିପୋର୍ଟ", "PPE Issued": "PPE ପ୍ରଦାନ",
+  "Rewards Received": "ମିଳିଥିବା ପୁରସ୍କାର", "Safety Suggestions": "ସୁରକ୍ଷା ପରାମର୍ଶ",
+  "Trainings Attended": "ଉପସ୍ଥିତ ତାଲିମ", "Violations": "ପରିଣାମ",
+  "Violation": "ପରିଣାମ", "Reward": "ପୁରସ୍କାର", "PPE": "PPE",
+  "Certificate": "ପ୍ରମାଣପତ୍ର", "Consequence": "ପରିଣାମ",
+  "Print": "ପ୍ରିଣ୍ଟ", "Passport": "ପାସପୋର୍ଟ",
+  "Back": "ପଛକୁ", "Search": "ଖୋଜନ୍ତୁ", "Date": "ତାରିଖ",
+  "Description": "ବିବରଣୀ", "Action Taken": "ଗ୍ରହଣ କରାଯାଇଥିବା କାର୍ଯ୍ୟ",
+  "Corrective Action": "ସଂଶୋଧନ କାର୍ଯ୍ୟ", "Category": "ଶ୍ରେଣୀ", "Area": "କ୍ଷେତ୍ର",
+  "All Safety Records": "ସମସ୍ତ ସୁରକ୍ଷା ରେକର୍ଡ",
+  "Employee Profile Not Found": "କର୍ମଚାରୀ ପ୍ରୋଫାଇଲ ମିଳିଲା ନାହିଁ",
+  "Hazard": "ବିପଦ", "Hazard ID": "ବିପଦ ID", "Hazard Type": "ବିପଦ ପ୍ରକାର",
+  "Open": "ଖୋଲା", "Closed": "ବନ୍ଦ", "Pending": "ବାକି ଅଛି"
+};
+window.__SX_DICT__ = {
+  "Employee Profile": "कर्मचारी प्रोफ़ाइल",
+  "Safety Performance": "सुरक्षा प्रदर्शन",
+  "Near Miss Records": "नियर मिस रिकॉर्ड",
+  "Employee Code": "कर्मचारी कोड",
+  "Name": "नाम",
+  "Designation": "पदनाम",
+  "Department": "विभाग",
+  "Blood Group": "ब्लड ग्रुप",
+  "Date of Birth": "जन्म तिथि",
+  "Joining Date": "जॉइनिंग तिथि",
+  "Mobile Number": "मोबाइल नंबर",
+  "Phone": "फोन",
+  "Emergency Contact": "आपातकालीन संपर्क",
+  "Address": "पता",
+  "Skill Grade": "स्किल ग्रेड",
+  "Safety Supervisor": "सुरक्षा सुपरवाइजर",
+  "View Certificate": "प्रमाणपत्र देखें",
+  "Dashboard": "डैशबोर्ड",
+  "Employees": "कर्मचारी",
+  "Active": "सक्रिय",
+  "Inactive": "निष्क्रिय",
+  "Status": "स्टेटस",
+  "Hazard Reported": "खतरा दर्ज",
+  "Near Miss Reported": "नियर मिस दर्ज",
+  "PPE Issued": "PPE जारी",
+  "Rewards Received": "मिले इनाम",
+  "Safety Suggestions": "सुरक्षा सुझाव",
+  "Trainings Attended": "की गई ट्रेनिंग",
+  "Violations": "परिणाम",
+  "Violation": "परिणाम",
+  "Reward": "इनाम",
+  "PPE": "PPE",
+  "Certificate": "प्रमाणपत्र",
+  "Consequence": "परिणाम",
+  "🖨️ Print": "🖨️ प्रिंट",
+  "⬇️ Passport": "⬇️ पासपोर्ट",
+  "Back": "वापस",
+  "Search": "खोजें",
+  "Date": "तारीख",
+  "Description": "विवरण",
+  "Action Taken": "की गई कार्रवाई",
+  "Corrective Action": "सुधारात्मक कार्रवाई",
+  "Category": "कैटेगरी",
+  "Area": "क्षेत्र",
+  "Given By": "किसने दिया",
+  "Closed By": "किसने बंद किया",
+  "Closed Date": "बंद होने की तारीख",
+  "Expiry Date": "समाप्ति तिथि",
+  "Duration": "अवधि",
+  "All Safety Records": "सभी सुरक्षा रिकॉर्ड",
+  "Employee Profile Not Found": "कर्मचारी प्रोफ़ाइल नहीं मिली",
+  "Hazard": "खतरा",
+  "Hazard ID": "खतरा ID",
+  "Hazard Type": "खतरे का प्रकार",
+  "Open": "खुला",
+  "Closed": "बंद",
+  "Pending": "लंबित"
+};
+</script>
+</body>
+</html>

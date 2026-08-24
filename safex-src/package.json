@@ -1,0 +1,13 @@
+{
+  "name": "safex-build",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Safex production hardening build pipeline",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "terser": "^5.43.0",
+    "html-minifier-terser": "^7.2.0"
+  }
+}
