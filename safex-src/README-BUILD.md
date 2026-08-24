@@ -34,5 +34,8 @@ vercel deploy --prod --yes
 
 ## Tests
 
-`/tmp/testenv/testhard.js` (jsdom harness) runs 12 scenarios against the BUILT
-output. Run it after every build before deploying.
+`npm test` (runs `test-build-smoke.js`, jsdom harness) verifies the BUILT
+output in `/home/user/safex` — 25 checks covering the event gallery (live
+`vault_gallery` data, XSS escaping, empty state, broken-image fallback),
+reports-log status palette & confidentiality, training-check refinements, and
+the alerts badge. Run it after every build before deploying.

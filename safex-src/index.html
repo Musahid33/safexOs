@@ -79,6 +79,7 @@
             min-width: 200px;
             flex-shrink: 0;
         }
+        .gallery-scroll-inner.gallery-empty { animation: none; justify-content: center; }
 
         /* ===== THEME SYSTEM ===== */
         :root {
@@ -160,6 +161,8 @@
         #offlineBanner.show { display: flex; }
         #syncBadge { display: none; }
         #syncBadge.show { display: inline-flex; }
+        .gallery-img-fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e293b, #0f172a); }
+        .gallery-img-fallback::after { content: "📸"; font-size: 30px; opacity: .55; }
     </style>
     <style>
         /* ══════ DESKTOP PRO ENHANCEMENTS (v32 — full page desktop, mobile unchanged) ══════ */
@@ -556,7 +559,7 @@
                         <p class="text-[10px] text-slate-500" id="subAlerts">Recent Plant-Wide Broadcasts</p>
                     </div>
                 </div>
-                <span class="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">3 NEW</span>
+                <span id="alertsBadge" class="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">LIVE</span>
             </div>
         </div>
 
@@ -698,184 +701,37 @@
             </div>
         </div>
 
-        <!-- 📸 EVENT GALLERY SECTION - AI Generated Photos Horizontal Auto-Scroll -->
+        <!-- 📸 EVENT GALLERY SECTION - Live photos from vault_gallery (auto-scroll marquee) -->
         <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm overflow-hidden">
             <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
                 <i data-lucide="images" class="w-5 h-5 text-purple-600"></i>
                 <h3 class="font-extrabold text-sm text-slate-800" id="galleryTitle">📸 Event Gallery</h3>
-                <span class="text-[8px] text-slate-400 font-medium ml-auto bg-purple-50 px-2 py-0.5 rounded-full" id="gallerySub">Scrolling</span>
+                <span class="text-[8px] text-slate-400 font-medium ml-auto bg-purple-50 px-2 py-0.5 rounded-full" id="gallerySub">Live from vault</span>
             </div>
             <div class="gallery-scroll">
-                <div class="gallery-scroll-inner">
-                    <!-- Card 1 - Safety Drill -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Drill - June 2026\n\nConfined Space Rescue Mock Drill\nParticipants: 24 workers\nLocation: Site-4 Blast Furnace\nConducted by: TSL Safety Team')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetydrill1/320/180" alt="Safety Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🚒 Safety Drill</h5>
-                                <p class="text-[8px] text-gray-300">Jun 2026 • 24 Participants</p>
-                            </div>
-                        </div>
+                <div class="gallery-scroll-inner" id="galleryScrollInner">
+                    <!-- Loading skeleton — replaced by fetchGallery() once vault_gallery loads -->
+                    <div class="gallery-card rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-slate-100 animate-pulse"><div class="relative w-full h-28 bg-slate-200"></div></div>
+                    <div class="gallery-card rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-slate-100 animate-pulse"><div class="relative w-full h-28 bg-slate-200"></div></div>
+                    <div class="gallery-card rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-slate-100 animate-pulse"><div class="relative w-full h-28 bg-slate-200"></div></div>
+                    <div class="gallery-card rounded-xl overflow-hidden shadow-sm border border-gray-200 bg-slate-100 animate-pulse"><div class="relative w-full h-28 bg-slate-200"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📸 GALLERY DETAIL MODAL (photo + full log text) -->
+        <div id="galleryDetailModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-[76] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="galleryDetailTitle">
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col my-4 max-h-[90vh]">
+                <div class="bg-purple-600 text-white px-4 py-3.5 flex justify-between items-center sticky top-0">
+                    <div>
+                        <h3 id="galleryDetailTitle" class="font-black text-sm uppercase tracking-wide">📸 Event Gallery</h3>
+                        <p class="text-[9px] text-purple-200 mt-0.5">Photo &amp; full event log</p>
                     </div>
-                    <!-- Card 2 - Safety Awards -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Awards - May 2026\n\nMonthly Safety Excellence Awards\nAwardees: 12 Workers\nVenue: Main Auditorium\nChief Guest: Plant Head')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetyawards1/320/180" alt="Safety Awards" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🏆 Safety Awards</h5>
-                                <p class="text-[8px] text-gray-300">May 2026 • 12 Awardees</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 3 - Training Session -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Training Session - Apr 2026\n\nPPE Usage & Care Workshop\nAttendees: 45 workers\nDuration: 2 Hours\nTrainer: Mr. Sharma (Safety Officer)')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/trainingsession1/320/180" alt="Training Session" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">📚 Training Session</h5>
-                                <p class="text-[8px] text-gray-300">Apr 2026 • 45 Attendees</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 4 - Fire Mock Drill -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Fire Mock Drill - Mar 2026\n\nAnnual Fire Evacuation Drill\nParticipants: 120 workers\nEvacuation Time: 4 min 32 sec\nAssessment: Excellent')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/firedrill1/320/180" alt="Fire Mock Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🔥 Fire Mock Drill</h5>
-                                <p class="text-[8px] text-gray-300">Mar 2026 • 120 Participants</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 5 - Safety Week -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Week - Feb 2026\n\nNational Safety Week Celebration\nEvents: Quiz, Poster, Essay\nWinners: 18 Workers\nTheme: Safety First')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetyweek1/320/180" alt="Safety Week" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🎉 Safety Week</h5>
-                                <p class="text-[8px] text-gray-300">Feb 2026 • 18 Winners</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 6 - Toolbox Talk -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Toolbox Talk - Jan 2026\n\nDaily Toolbox Talk Session\nTopic: Height Work Safety\nAttendees: 32 workers\nLocation: Site-2 Assembly Point')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/toolboxtalk1/320/180" alt="Toolbox Talk" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">💬 Toolbox Talk</h5>
-                                <p class="text-[8px] text-gray-300">Jan 2026 • 32 Workers</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 7 - HSE Audit -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 HSE Audit - Dec 2025\n\nQuarterly HSE Compliance Audit\nScore: 92/100\nFindings: 3 Minor NCs\nStatus: Closed')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/hseaudit1/320/180" alt="HSE Audit" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">📋 HSE Audit</h5>
-                                <p class="text-[8px] text-gray-300">Dec 2025 • Score 92%</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 8 - Wellness Camp -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Wellness Camp - Nov 2025\n\nAnnual Health & Wellness Camp\nWorkers Checked: 156\nTests: BP, Sugar, Eye, Spirometry\nPartner: Apollo Hospitals')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/wellnesscamp1/320/180" alt="Wellness Camp" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🏥 Wellness Camp</h5>
-                                <p class="text-[8px] text-gray-300">Nov 2025 • 156 Checkups</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Duplicate for seamless loop -->
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Drill - June 2026\n\nConfined Space Rescue Mock Drill\nParticipants: 24 workers\nLocation: Site-4 Blast Furnace\nConducted by: TSL Safety Team')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetydrill2/320/180" alt="Safety Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🚒 Safety Drill</h5>
-                                <p class="text-[8px] text-gray-300">Jun 2026 • 24 Participants</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Awards - May 2026\n\nMonthly Safety Excellence Awards\nAwardees: 12 Workers\nVenue: Main Auditorium\nChief Guest: Plant Head')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetyawards2/320/180" alt="Safety Awards" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🏆 Safety Awards</h5>
-                                <p class="text-[8px] text-gray-300">May 2026 • 12 Awardees</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Training Session - Apr 2026\n\nPPE Usage & Care Workshop\nAttendees: 45 workers\nDuration: 2 Hours\nTrainer: Mr. Sharma (Safety Officer)')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/trainingsession2/320/180" alt="Training Session" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">📚 Training Session</h5>
-                                <p class="text-[8px] text-gray-300">Apr 2026 • 45 Attendees</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Fire Mock Drill - Mar 2026\n\nAnnual Fire Evacuation Drill\nParticipants: 120 workers\nEvacuation Time: 4 min 32 sec\nAssessment: Excellent')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/firedrill2/320/180" alt="Fire Mock Drill" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🔥 Fire Mock Drill</h5>
-                                <p class="text-[8px] text-gray-300">Mar 2026 • 120 Participants</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Safety Week - Feb 2026\n\nNational Safety Week Celebration\nEvents: Quiz, Poster, Essay\nWinners: 18 Workers\nTheme: Safety First')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/safetyweek2/320/180" alt="Safety Week" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🎉 Safety Week</h5>
-                                <p class="text-[8px] text-gray-300">Feb 2026 • 18 Winners</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Toolbox Talk - Jan 2026\n\nDaily Toolbox Talk Session\nTopic: Height Work Safety\nAttendees: 32 workers\nLocation: Site-2 Assembly Point')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/toolboxtalk2/320/180" alt="Toolbox Talk" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">💬 Toolbox Talk</h5>
-                                <p class="text-[8px] text-gray-300">Jan 2026 • 32 Workers</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 HSE Audit - Dec 2025\n\nQuarterly HSE Compliance Audit\nScore: 92/100\nFindings: 3 Minor NCs\nStatus: Closed')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/hseaudit2/320/180" alt="HSE Audit" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">📋 HSE Audit</h5>
-                                <p class="text-[8px] text-gray-300">Dec 2025 • Score 92%</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" onclick="alert('📸 Wellness Camp - Nov 2025\n\nAnnual Health & Wellness Camp\nWorkers Checked: 156\nTests: BP, Sugar, Eye, Spirometry\nPartner: Apollo Hospitals')">
-                        <div class="relative w-full h-28 bg-gray-900">
-                            <img src="https://picsum.photos/seed/wellnesscamp2/320/180" alt="Wellness Camp" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <h5 class="text-[11px] font-bold text-white drop-shadow-lg">🏥 Wellness Camp</h5>
-                                <p class="text-[8px] text-gray-300">Nov 2025 • 156 Checkups</p>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="button" onclick="closeGalleryDetail()" class="text-white font-bold text-lg" aria-label="Close gallery photo">✕</button>
+                </div>
+                <div id="galleryDetailBody" class="p-4 space-y-3 overflow-y-auto text-xs"></div>
+                <div class="p-4 pt-0">
+                    <button type="button" onclick="closeGalleryDetail()" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-slate-800 transition">Close</button>
                 </div>
             </div>
         </div>
@@ -937,7 +793,7 @@
                     </div>
                     <p class="text-[9px] text-slate-500 mb-2">Enter your own Employee Code to view applicable, available, pending and completed training.</p>
                     <div class="flex gap-2">
-                        <input type="text" id="trainingCheckEmpCode" required placeholder="Enter Employee Code" autocomplete="off" oninput="this.value = this.value.toUpperCase()" class="w-full text-xs border border-emerald-200 rounded-lg p-2.5 font-bold text-slate-800 focus:outline-emerald-500" />
+                        <input type="text" id="trainingCheckEmpCode" required placeholder="Enter Employee Code" autocomplete="off" oninput="this.value = this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();checkEmployeeTraining();}" class="w-full text-xs border border-emerald-200 rounded-lg p-2.5 font-bold text-slate-800 focus:outline-emerald-500" />
                         <button type="button" onclick="checkEmployeeTraining()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 rounded-lg">Check</button>
                     </div>
                     <div id="trainingStatusPanel" class="hidden mt-3 space-y-3">
@@ -1506,6 +1362,7 @@
                 <div id="safetyAlertsListView">
                     <div id="alertFilterChips" class="flex flex-wrap gap-1.5 mb-2.5"></div>
                     <div id="alertListContainer" class="space-y-2.5"></div>
+                    <p id="alertsUpdatedAt" class="text-[8px] text-slate-400 text-center pt-1">Syncing live…</p>
                 </div>
 
                 <!-- 🔍 DETAIL VIEW — click karne pe alert ka pura details + attachment -->
@@ -1604,9 +1461,13 @@
         }
 
         function reportStatusClass(status) {
-            if (status === 'Closed') return 'bg-emerald-50 text-emerald-600 border-emerald-200';
-            if (status === 'In Progress' || status === 'Work in Progress') return 'bg-amber-50 text-amber-600 border-amber-200';
-            return 'bg-red-50 text-red-600 border-red-200';
+            const s = String(status || '').toLowerCase();
+            const closedFamily = ['closed', 'resolved', 'verified'];
+            const inProgressFamily = ['in progress', 'work in progress', 'pending', 'under investigation', 'investigation under process', 'rca on going', 'create for rca', 'do rca', 'rca', 'correction & preventive action', 'capa', 'verify'];
+            if (closedFamily.includes(s)) return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+            if (inProgressFamily.includes(s)) return 'bg-amber-50 text-amber-600 border-amber-200';
+            if (s === 'open') return 'bg-red-50 text-red-600 border-red-200';
+            return 'bg-slate-50 text-slate-600 border-slate-200';
         }
 
         function reportDateLabel(value) {
@@ -1643,14 +1504,28 @@
                         <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 border-b border-gray-100">
                             <span>Report / Employee ID</span><span>Status</span>
                         </div>
-                        <p class="text-[10px] text-slate-400 text-center py-3">No reports logged yet.</p>
+                        <p class="text-[10px] text-slate-400 text-center py-3">No reports logged yet — reports submitted on this page will appear here.</p>
                     `;
                     return;
                 }
 
+                // Status summary chips: Open / In Progress / Closed
+                const statusCount = { 'Open': 0, 'In Progress': 0, 'Closed': 0 };
+                visibleData.forEach(rec => {
+                    const st = String(rec.action_status || rec.status || 'Open');
+                    const family = st === 'Closed' || st === 'Resolved' || st === 'Verified' ? 'Closed' : (st === 'Open' ? 'Open' : 'In Progress');
+                    statusCount[family]++;
+                });
+
                 let html = `
                     <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1.5 border-b border-gray-100">
                         <span>Report / Employee ID</span><span>Status</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1 pt-0.5">
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded-full uppercase bg-red-50 text-red-600 border border-red-200">${statusCount.Open} Open</span>
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded-full uppercase bg-amber-50 text-amber-600 border border-amber-200">${statusCount['In Progress']} In Progress</span>
+                        <span class="text-[8px] font-black px-2 py-0.5 rounded-full uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">${statusCount.Closed} Closed</span>
+                        <span class="text-[8px] text-slate-400 font-semibold ml-auto self-center">Latest ${visibleData.length}</span>
                     </div>
                 `;
                 visibleData.forEach(rec => {
@@ -1830,7 +1705,7 @@
 
             if (!empCode) { alert('Please enter your Employee Code.'); return; }
             if (panel) panel.classList.remove('hidden');
-            if (list) list.innerHTML = '<p class="text-[10px] font-bold text-emerald-700 py-3">🔍 Checking training records for ' + empCode.replace(/</g, '&lt;') + '...</p>';
+            if (list) list.innerHTML = '<p class="text-[10px] font-bold text-emerald-700 py-3">🔍 Checking training records for <b>' + empCode.replace(/</g, '&lt;') + '</b>...</p>';
             trainingSetCount('trainingApplicableCount', '…');
             trainingSetCount('trainingAvailableCount', '…');
             trainingSetCount('trainingPendingCount', '…');
@@ -1881,28 +1756,35 @@
                 });
             } catch (e) {}
 
-            // ── 3) Applicable topics — system me available saare trainings ──
-            const applicableSet = new Set();
+            // ── 3) Applicable topics — system me available saare trainings (case-insensitive dedupe) ──
+            const applicableMap = new Map();
             let sessionsCount = 0;
+            const addApplicable = function (rawTitle) {
+                const title = String(rawTitle || '').trim();
+                if (!title) return;
+                const key = title.toUpperCase();
+                if (!applicableMap.has(key)) applicableMap.set(key, title);
+            };
             try {
                 const { data } = await _supabase.from('vault_training').select('*').order('id', { ascending: false }).limit(100);
-                (data || []).forEach(function (rec) { applicableSet.add(String(rec.topic || rec.title || '').trim()); sessionsCount++; });
+                (data || []).forEach(function (rec) { addApplicable(rec.topic || rec.title); sessionsCount++; });
             } catch (e) {}
-            (trainingSessionsCache || []).forEach(function (rec) { applicableSet.add(String(rec.topic || rec.title || '').trim()); });
-            applicableSet.delete('');
+            (trainingSessionsCache || []).forEach(function (rec) { addApplicable(rec.topic || rec.title); });
             const completedTopics = new Set(completed.map(function (r) { return String(r.topic || '').trim().toUpperCase(); }));
-            const applicableTopics = Array.from(applicableSet);
+            const applicableTopics = Array.from(applicableMap.values());
             const pendingTopics = applicableTopics.filter(function (t) { return !completedTopics.has(t.toUpperCase()); });
+            // Sessions "Available" counter — 100+ jab limit hit ho
+            const availableLabel = sessionsCount >= 100 ? '100+' : String(sessionsCount);
 
             // ── 4) Counters + result list ──
             trainingSetCount('trainingApplicableCount', applicableTopics.length);
-            trainingSetCount('trainingAvailableCount', sessionsCount);
+            trainingSetCount('trainingAvailableCount', availableLabel);
             trainingSetCount('trainingPendingCount', pendingTopics.length);
             trainingSetCount('trainingCompletedCount', completed.length);
 
-            let html = '';
+            let html = '<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-[10px] font-black text-emerald-700">✅ Employee found</span><span class="text-[9px] font-bold text-slate-400 bg-white border border-emerald-100 rounded-full px-2 py-0.5">' + empCode.replace(/</g, '&lt;') + '</span></div>';
             if (completed.length) {
-                html += '<p class="text-[9px] font-black uppercase text-slate-500">✅ Completed Trainings (' + completed.length + ')</p>';
+                html += '<p class="text-[9px] font-black uppercase text-slate-500 mt-2">✅ Completed Trainings (' + completed.length + ')</p>';
                 html += '<div class="space-y-1">' + completed.map(function (r) {
                     const d = r.date ? new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
                     return '<div class="flex items-center gap-2 p-2 bg-white border border-emerald-100 rounded-lg"><span class="text-emerald-600 shrink-0">✅</span><span class="flex-1 min-w-0"><span class="block text-[11px] font-bold text-slate-800 truncate">' + String(r.topic || 'Training').replace(/</g, '&lt;') + '</span><span class="block text-[9px] text-slate-500">' + d + ' • ' + String(r.trainer || 'Internal Trainer').replace(/</g, '&lt;') + '</span></span></div>';
@@ -1913,6 +1795,9 @@
                 html += '<div class="space-y-1">' + pendingTopics.slice(0, 8).map(function (t) {
                     return '<div class="flex items-center gap-2 p-2 bg-white border border-amber-100 rounded-lg"><span class="text-amber-500 shrink-0">⏳</span><span class="block text-[11px] font-bold text-slate-700 truncate">' + t.replace(/</g, '&lt;') + '</span></div>';
                 }).join('') + '</div>';
+                if (pendingTopics.length > 8) {
+                    html += '<p class="text-[9px] text-amber-600 font-bold">↑ Showing first 8 of ' + pendingTopics.length + ' pending topics.</p>';
+                }
             }
             if (!completed.length && !pendingTopics.length) {
                 html += '<p class="text-[10px] text-slate-500 text-center py-3">No training records found for this employee.</p>';
@@ -1935,15 +1820,23 @@
                 console.error('Alerts fetch error:', err);
                 alertsCache = [];
             }
-            // Header badge update (total live alerts)
+            // Header badge update (total live alerts) — LIVE jab 0 ho, count jab > 0
             const totalNew = alertsCache.length;
-            const badge = document.querySelector('[onclick="openSafetyAlertsModal()"] .bg-rose-500');
-            if (badge) badge.textContent = totalNew + (totalNew === 1 ? ' ALERT' : ' ALERTS');
+            const badge = document.getElementById('alertsBadge') || document.querySelector('[onclick="openSafetyAlertsModal()"] .bg-rose-500');
+            if (badge) {
+                badge.textContent = totalNew > 0 ? totalNew + ' NEW' : 'LIVE';
+                badge.className = 'text-white text-[9px] font-black px-2 py-0.5 rounded-full ' + (totalNew > 0 ? 'bg-rose-500' : 'bg-slate-400');
+            }
             // Modal khula ho to list bhi live refresh
             const modal = document.getElementById('safetyAlertsModal');
             if (modal && !modal.classList.contains('hidden')) {
                 renderAlertFilterChips();
                 renderAlertList();
+            }
+            // "Updated at" microcopy — live sync ka proof
+            const updatedEl = document.getElementById('alertsUpdatedAt');
+            if (updatedEl) {
+                updatedEl.textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' · Live from vault';
             }
         }
 
@@ -2530,7 +2423,70 @@
             }
         }
 
-        // 📸 9. EVENT GALLERY - Fetch from vault_gallery
+        // 📸 9. EVENT GALLERY - Fetch from vault_gallery (live, XSS-safe, auto-scroll marquee)
+        let galleryCache = [];
+        let galleryDetailListenerAttached = false;
+
+        function galleryCardHtml(img) {
+            const title = escapeReportHtml(img.title || 'Safety Event');
+            const meta = escapeReportHtml(img.metadata || '');
+            const src = escapeReportHtml(img.image_url || '');
+            return '<div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" data-gallery-id="' + escapeReportHtml(String(img.id)) + '" title="' + title + '">' +
+                '<div class="relative w-full h-28 bg-slate-800">' +
+                    '<img src="' + src + '" alt="' + title + '" class="w-full h-full object-cover transition" loading="lazy" onerror="this.parentElement.classList.add(\'gallery-img-fallback\'); this.remove();" />' +
+                    '<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>' +
+                    '<div class="absolute bottom-2 left-2 right-2">' +
+                        '<h5 class="text-[11px] font-bold text-white drop-shadow-lg">' + title + '</h5>' +
+                        '<p class="text-[8px] text-gray-300">' + meta + '</p>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function galleryEmptyHtml() {
+            return '<div class="gallery-card w-[260px] rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-center p-5">' +
+                '<div><div class="text-2xl mb-1">📷</div>' +
+                '<p class="text-[10px] text-slate-400 font-semibold leading-relaxed">No gallery photos yet — photos published by the Safety Officer will appear here.</p></div></div>';
+        }
+
+        function attachGalleryDetailListener() {
+            if (galleryDetailListenerAttached) return;
+            galleryDetailListenerAttached = true;
+            const scroller = document.getElementById('galleryScrollInner') || document.querySelector('.gallery-scroll-inner');
+            if (!scroller) return;
+            scroller.addEventListener('click', function (ev) {
+                const card = ev.target.closest ? ev.target.closest('.gallery-card') : null;
+                if (!card || !card.dataset || !card.dataset.galleryId) return;
+                const img = galleryCache.find(function (g) { return String(g.id) === String(card.dataset.galleryId); });
+                if (img) openGalleryDetail(img);
+            });
+        }
+
+        function openGalleryDetail(img) {
+            document.getElementById('galleryDetailTitle').textContent = '📸 ' + (img.title || 'Gallery Photo');
+            const dateLabel = img.created_at ? new Date(img.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const log = img.full_log_text ? String(img.full_log_text).trim() : '';
+            let bodyHtml = '';
+            if (img.image_url) {
+                bodyHtml += '<div class="rounded-xl overflow-hidden border border-gray-200 bg-slate-900"><img src="' + escapeReportHtml(img.image_url) + '" alt="' + escapeReportHtml(img.title || 'Gallery photo') + '" class="w-full max-h-64 object-cover" loading="lazy" onerror="this.remove()" /></div>';
+            }
+            if (img.metadata || dateLabel) {
+                bodyHtml += '<div class="rounded-lg bg-slate-50 border border-slate-100 p-2.5 text-[10px] font-bold text-slate-600">' +
+                    escapeReportHtml(img.metadata || '') + (dateLabel ? (img.metadata ? ' • ' : '') + escapeReportHtml(dateLabel) : '') + '</div>';
+            }
+            if (log) {
+                bodyHtml += '<div class="rounded-lg bg-slate-50 border border-slate-100 p-2.5"><p class="text-[9px] font-black text-slate-400 uppercase tracking-wide mb-1">Details</p>' +
+                    '<p class="text-xs font-semibold text-slate-800 leading-relaxed whitespace-pre-line">' + formatReportText(log) + '</p></div>';
+            }
+            document.getElementById('galleryDetailBody').innerHTML = bodyHtml;
+            document.getElementById('galleryDetailModal').classList.remove('hidden');
+        }
+
+        function closeGalleryDetail() {
+            const modal = document.getElementById('galleryDetailModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         async function fetchGallery() {
             try {
                 const { data, error } = await _supabase
@@ -2539,31 +2495,28 @@
                     .order('id', { ascending: false })
                     .limit(8);
                 if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    const scrollInner = document.querySelector('.gallery-scroll-inner');
-                    if (scrollInner) {
-                        // Keep first set, replace with dynamic data
-                        const cards = data.map(img => `
-                            <div class="gallery-card rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition shadow-sm border border-gray-200" 
-                                 onclick="alert('${img.full_log_text ? img.full_log_text.replace(/'/g, "\\'").replace(/\n/g, '\\n') : img.title}')">
-                                <div class="relative w-full h-28 bg-gray-900">
-                                    <img src="${img.image_url}" alt="${img.title}" class="w-full h-full object-cover opacity-85 hover:opacity-100 transition" loading="lazy" />
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                                    <div class="absolute bottom-2 left-2 right-2">
-                                        <h5 class="text-[11px] font-bold text-white drop-shadow-lg">${img.title}</h5>
-                                        <p class="text-[8px] text-gray-300">${img.metadata || ''}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('');
-                        
-                        // Duplicate for seamless loop
+
+                galleryCache = (data || []).filter(function (g) { return g && g.image_url; });
+                const scrollInner = document.getElementById('galleryScrollInner') || document.querySelector('.gallery-scroll-inner');
+                const sub = document.getElementById('gallerySub');
+                if (scrollInner) {
+                    if (!galleryCache.length) {
+                        scrollInner.classList.add('gallery-empty');
+                        scrollInner.innerHTML = galleryEmptyHtml();
+                        if (sub) sub.textContent = 'Empty';
+                    } else {
+                        scrollInner.classList.remove('gallery-empty');
+                        const cards = galleryCache.map(galleryCardHtml).join('');
+                        // Duplicate for seamless marquee loop
                         scrollInner.innerHTML = cards + cards;
+                        if (sub) sub.textContent = galleryCache.length + (galleryCache.length === 1 ? ' photo · Live' : ' photos · Live');
+                        attachGalleryDetailListener();
                     }
                 }
-            } catch(err) {
+            } catch (err) {
                 console.error('Gallery fetch error:', err);
+                const sub = document.getElementById('gallerySub');
+                if (sub) sub.textContent = 'Live';
             }
         }
 
@@ -3041,7 +2994,7 @@
                 setTx('fameSub', "ऑटो-स्क्रॉल");
                 
                 setTx('galleryTitle', "📸 इवेंट गैलरी");
-                setTx('gallerySub', "स्क्रॉल हो रहा है");
+                setTx('gallerySub', "वॉल्ट से लाइव");
                 setTx('footerAddr', "टाटा स्टील जेएसआर, जमशेदपुर, झारखंड, भारत");
                 
                 setTx('sosCallBtn', "📞 कॉल करने के लिए टैप करें");
@@ -3095,7 +3048,7 @@
 
                     alertBackBtn: "ପଛକୁ",
                     fameTitle: "ପ୍ରଶଂସାର କାନ୍ଥ", fameSub: "ଅଟୋ-ସ୍କ୍ରୋଲ",
-                    galleryTitle: "📸 ଇଭେଣ୍ଟ ଗ୍ୟାଲେରୀ", gallerySub: "ସ୍କ୍ରୋଲ ହେଉଛି",
+                    galleryTitle: "📸 ଇଭେଣ୍ଟ ଗ୍ୟାଲେରୀ", gallerySub: "ଭଲ୍ଟରୁ ଲାଇଭ୍",
                     footerAddr: "ଟାଟା ଷ୍ଟିଲ JSR, ଜାମଶେଦପୁର, ଝାଡ଼ଖଣ୍ଡ, ଭାରତ",
                     sosCallBtn: "📞 କଲ କରିବାକୁ ଟାପ କରନ୍ତୁ"
                 };
@@ -3197,7 +3150,7 @@
                 setTx('fameSub', "Auto-scroll");
                 
                 setTx('galleryTitle', "📸 Event Gallery");
-                setTx('gallerySub', "Scrolling");
+                setTx('gallerySub', "Live from vault");
                 setTx('footerAddr', "Tata Steel JSR, Jamshedpur, Jharkhand, India");
                 
                 setTx('sosCallBtn', "📞 Tap to Call");

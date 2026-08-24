@@ -4,7 +4,7 @@
    - Supabase REST GETs: stale-while-revalidate (last data visible offline)
    - Offline fallback page for navigation
    ═══════════════════════════════════════════════════════════ */
-const CACHE = 'safex-v80';
+const CACHE = 'safex-v82';
 const APP_SHELL = [
   '/',
   '/index.html',
