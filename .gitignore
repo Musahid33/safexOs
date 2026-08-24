@@ -16,6 +16,11 @@ next-env.d.ts
 
 # Vercel / tooling
 .vercel/
+deploy.log
+
+# Workspace exports / local uploads — never commit
+*.zip
+uploads/
 
 # OS / editor
 .DS_Store
