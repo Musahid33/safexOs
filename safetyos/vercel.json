@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "name": "musahidsafetyox",
+  "framework": "nextjs",
+  "regions": ["bom1"],
+  "buildCommand": "npm run build",
+  "installCommand": "npm install"
+}

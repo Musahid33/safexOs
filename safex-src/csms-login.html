@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0f172a"><title>Safex CSMS Login</title>
+<script src="/assets/vendor/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#f1f5f9;color:#0f172a;font:14px Arial,sans-serif}.top{background:#0f172a;color:#fff;border-bottom:3px solid #f59e0b;padding:14px 18px}.top small{color:#fbbf24;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.top h1{margin:5px 0 0;font-size:20px}.wrap{max-width:760px;margin:auto;padding:22px 14px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 8px 24px #0f172a12;padding:22px}.login{max-width:390px;margin:45px auto}.label{display:block;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;margin:13px 0 5px}.input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px}.btn{border:0;border-radius:9px;padding:11px 14px;font-weight:800;font-size:12px;cursor:pointer}.btn-primary{background:#2563eb;color:white;width:100%;margin-top:18px}.btn-primary:hover{background:#1d4ed8}.btn-home{background:#e2e8f0;color:#334155}.hub{display:none}.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.hub-btn{min-height:145px;border:0;border-radius:15px;padding:18px;text-align:left;color:#fff;cursor:pointer;box-shadow:0 8px 20px #0f172a18}.hub-btn:hover{transform:translateY(-2px)}.hub-btn b{display:block;font-size:15px;margin:30px 0 6px}.hub-btn span{font-size:10px;color:#dbeafe}.audit{background:linear-gradient(135deg,#7c3aed,#312e81)}.docs{background:linear-gradient(135deg,#2563eb,#1e3a8a)}.home{background:linear-gradient(135deg,#059669,#064e3b)}.error{color:#dc2626;font-size:11px;font-weight:700;margin-top:10px}@media(max-width:620px){.hub-grid{grid-template-columns:1fr}.hub-btn{min-height:105px}.hub-btn b{margin:10px 0 5px}}
+/* ══ DESKTOP PRO (v2) ══ */
+@media(min-width:900px){.wrap{max-width:1200px}.top-inner{max-width:1200px;margin:0 auto}.hub-btn{min-height:170px}}
+</style><link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Safex">
+</head>
+<body>
+<header class="top" style="position:relative"><small>Safex • EMVEESS Infraventures Pvt. Ltd.</small><h1>CSMS Login & Control Hub</h1><button data-langbtn onclick="safexLang.toggle()" style="position:absolute;right:14px;top:12px;background:#f59e0b;color:#0f172a;border:0;border-radius:8px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer">हिंदी</button></header>
+<main class="wrap">
+<section id="loginCard" class="card login"><h2 style="margin:0 0 5px">🔐 CSMS Login</h2><p style="color:#64748b;font-size:12px;margin:0">Authorized Safety Officer access</p><div id="csmsLoginFields"><label class="label">Officer User ID</label><input id="csmsUser" class="input" placeholder="TSL-OFF-01" autocomplete="username"><label class="label">Password</label><input id="csmsPass" class="input" type="password" placeholder="Enter password" autocomplete="current-password"><button class="btn btn-primary" onclick="loginCsms()">Login to CSMS</button><p id="loginError" class="error"></p><div style="text-align:right;margin-top:8px"><a href="#" onclick="showCsmsForgot();return false" style="color:#2563eb;font-size:11px;font-weight:700;text-decoration:none">Forgot Password?</a></div></div><div id="csmsOtpStep" style="display:none;text-align:center;padding:10px 0"><div style="font-size:30px">📧</div><p style="font-weight:800;margin:8px 0 2px">Email Verification Required</p><p style="color:#64748b;font-size:11px;margin:0 0 12px">A 6-digit security code has been sent to your <b>registered email address</b>.</p><div id="csmsOtpBoxes" style="display:flex;gap:6px;justify-content:center"></div><button class="btn btn-primary" onclick="verifyCsmsOtp()" style="background:#059669">✅ Verify &amp; Login</button><p id="csmsOtpError" class="error"></p><button class="btn btn-home" style="width:100%;margin-top:8px" onclick="resendCsmsOtp()">📨 Resend Code</button><button class="btn btn-home" style="width:100%;margin-top:8px" onclick="backCsmsLogin()">← Back to login</button></div><div id="csmsForgotBox" style="display:none;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:12px"><p style="font-weight:800;margin:0 0 4px">🔑 Reset Password</p><p style="color:#64748b;font-size:11px;margin:0 0 8px">Enter your User ID and registered email — reset link will be emailed to you.</p><label class="label">Officer User ID</label><input id="csmsForgotUser" class="input" autocomplete="username"><label class="label">Registered Email</label><input id="csmsForgotEmail" class="input" type="email"><button class="btn btn-primary" onclick="submitCsmsForgot()">Send Reset Link</button><p id="csmsForgotMsg" style="color:#059669;font-size:11px;font-weight:700;margin-top:10px"></p></div><div id="csmsRecoveryBox" style="display:none;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:12px"><p style="font-weight:800;margin:0 0 4px">🔑 Set New Password</p><label class="label">New Password (min 6)</label><input id="csmsNewPwd1" class="input" type="password" autocomplete="new-password"><label class="label">Confirm Password</label><input id="csmsNewPwd2" class="input" type="password" autocomplete="new-password"><button class="btn btn-primary" onclick="submitCsmsRecovery()" style="background:#059669">Save New Password</button><p id="csmsRecoveryMsg" style="color:#059669;font-size:11px;font-weight:700;margin-top:10px"></p></div><button class="btn btn-home" style="margin-top:12px;width:100%" onclick="location.href='index.html'">← Safex Home</button></section>
+<section id="hub" class="hub"><div class="card"><h2 style="margin:0 0 5px">CSMS Control Hub</h2><p id="welcome" style="color:#64748b;font-size:12px;margin:0">Choose a module to continue.</p><div class="hub-grid"><button class="hub-btn home" onclick="location.href='index.html'"><span>🏠 HOME</span><b>Safex Home</b><span>Return to the main safety portal</span></button><button class="hub-btn audit" onclick="location.href='csms-dashboard.html'"><span>✅ AUDIT</span><b>CSMS Internal Audits</b><span>Open the Annexure #8 annual audit checklist</span></button></div><button class="btn btn-home" style="margin-top:18px" onclick="logoutCsms()">Sign out</button></div></section>
+</main>
+<script>
+const supabaseUrl='https://ixfwhxjtajmrdndhtsub.supabase.co';const supabaseKey='sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-';const db=window.supabase.createClient(supabaseUrl,supabaseKey);
+async function sha256hex(str){try{const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('')}catch(e){return ''}}
+var csmsPendingAuth=null,csmsOtpTimer=null,csmsOtpPreToken='';
+function csmsFail(error){var f=Number(localStorage.getItem('safex_csms_fails')||0)+1;localStorage.setItem('safex_csms_fails',String(f));if(f>=5){localStorage.setItem('safex_csms_lock',String(Date.now()+30000));localStorage.setItem('safex_csms_fails','0');error.textContent='Too many failed attempts. Locked for 30 seconds.'}else{error.textContent='Invalid CSMS User ID or Password.'}}
+function csmsComplete(profile){if(csmsOtpTimer){clearInterval(csmsOtpTimer);csmsOtpTimer=null}localStorage.removeItem('safex_csms_fails');localStorage.removeItem('safex_csms_lock');sessionStorage.setItem('csms_user',profile.username);document.getElementById('welcome').textContent='Welcome '+profile.full_name+' • '+profile.role;document.getElementById('loginCard').style.display='none';document.getElementById('hub').style.display='block'}
+function buildCsmsOtpBoxes(){var w=document.getElementById('csmsOtpBoxes');w.innerHTML='';for(var i=0;i<6;i++){(function(idx){var inp=document.createElement('input');inp.type='text';inp.inputMode='numeric';inp.maxLength=1;inp.style.cssText='width:38px;height:46px;text-align:center;font-size:18px;font-weight:800;border:1px solid #cbd5e1;border-radius:8px';inp.addEventListener('input',function(){inp.value=inp.value.replace(/\D/g,'');if(inp.value){var nx=w.children[idx+1];if(nx)nx.focus()}});inp.addEventListener('keydown',function(e){if(e.key==='Backspace'&&!inp.value){var pv=w.children[idx-1];if(pv)pv.focus()}});w.appendChild(inp)})(i)}w.children[0].focus()}
+async function startCsmsOtp(profile){csmsPendingAuth=profile;document.getElementById('csmsLoginFields').style.display='none';document.getElementById('csmsOtpStep').style.display='block';buildCsmsOtpBoxes();await sendCsmsOtp()}
+async function sendCsmsOtp(){if(!csmsPendingAuth)return;try{var r=await db.rpc('safex_request_email_otp',{p_username:csmsPendingAuth.username,p_login_type:csmsPendingAuth.login_type});if(r.error){alert('Could not send code. Please try again.');return}if(r.data&&r.data.ok===false){alert(r.data.message==='rate_limited'?('Please wait '+(r.data.retry_after||30)+' seconds before requesting another code.'):'Could not send code. Please try again.')}}catch(e){alert('Could not send code. Please try again.')}}
+async function verifyCsmsOtp(){if(!csmsPendingAuth)return;var w=document.getElementById('csmsOtpBoxes'),code='';for(var i=0;i<w.children.length;i++)code+=w.children[i].value;var err=document.getElementById('csmsOtpError');err.textContent='';if(code.length!==6){err.textContent='Please enter the 6-digit code from your email.';return}try{var r=await db.rpc('safex_verify_email_otp',{p_username:csmsPendingAuth.username,p_code:code});if(r.error||!r.data){err.textContent='Invalid code. Please check your email and try again.';return}csmsComplete(csmsPendingAuth)}catch(e){err.textContent='Verification failed: '+e.message}}
+async function resendCsmsOtp(){if(!csmsPendingAuth)return;await sendCsmsOtp()}
+async function backCsmsLogin(){if(csmsOtpTimer){clearInterval(csmsOtpTimer);csmsOtpTimer=null}csmsPendingAuth=null;try{await db.auth.signOut()}catch(e){}document.getElementById('csmsOtpStep').style.display='none';document.getElementById('csmsLoginFields').style.display='block';document.getElementById('csmsPass').value=''}
+function showCsmsForgot(){document.getElementById('csmsForgotBox').style.display='block'}
+async function submitCsmsForgot(){var user=document.getElementById('csmsForgotUser').value.trim().toUpperCase();var email=document.getElementById('csmsForgotEmail').value.trim().toLowerCase();var msg=document.getElementById('csmsForgotMsg');msg.textContent='';if(!user||!email){msg.style.color='#dc2626';msg.textContent='Please enter User ID and registered email.';return}var {data:p}=await db.rpc('safex_verify_user_email',{p_username:user,p_email:email});if(!p){msg.style.color='#dc2626';msg.textContent='User ID and Email do not match our records.';return}var {error}=await db.auth.resetPasswordForEmail(p.email,{redirectTo:location.origin+'/csms-login.html#recovery'});if(error){msg.style.color='#dc2626';msg.textContent='Could not send email: '+error.message;return}msg.style.color='#059669';msg.textContent='✅ Reset link sent to your registered email — check your inbox/spam.'}
+async function submitCsmsRecovery(){var p1=document.getElementById('csmsNewPwd1').value,p2=document.getElementById('csmsNewPwd2').value,msg=document.getElementById('csmsRecoveryMsg');msg.textContent='';if(p1.length<6){msg.style.color='#dc2626';msg.textContent='Password must be at least 6 characters.';return}if(p1!==p2){msg.style.color='#dc2626';msg.textContent='Passwords do not match.';return}var {error}=await db.auth.updateUser({password:p1});if(error){msg.style.color='#dc2626';msg.textContent='Update failed: '+error.message;return}try{await db.auth.signOut()}catch(e){}msg.style.color='#059669';msg.textContent='✅ Password updated! Please login with your new password.';document.getElementById('csmsRecoveryBox').style.display='none';document.getElementById('csmsLoginFields').style.display='block'}
+async function loginCsms(){var user=document.getElementById('csmsUser').value.trim().toUpperCase().replace(/[<>"'`]/g,'').slice(0,40);var pass=document.getElementById('csmsPass').value;var error=document.getElementById('loginError');error.textContent='';if(!user||!pass){error.textContent='Enter User ID and Password.';return}try{var lock=Number(localStorage.getItem('safex_csms_lock')||0);if(lock>Date.now()){error.textContent='Too many failed attempts. Try again in '+(Math.ceil((lock-Date.now())/1000))+'s.';return}var {data:profile,error:lkErr}=await db.rpc('safex_user_by_username',{p_username:user,p_login_type:'CSMS'});if(lkErr||!profile||!profile.email){csmsFail(error);return}var {error:authErr}=await db.auth.signInWithPassword({email:profile.email,password:pass});if(authErr){csmsFail(error);return}if(profile.otp_required){await startCsmsOtp(profile)}else{csmsComplete(profile)}}catch(e){error.textContent='Login could not be verified: '+e.message}}
+function logoutCsms(){sessionStorage.removeItem('csms_user');try{db.auth.signOut()}catch(e){}location.reload()}
+if(sessionStorage.getItem('csms_user')){document.getElementById('loginCard').style.display='none';document.getElementById('hub').style.display='block';document.getElementById('welcome').textContent='CSMS session active.'}
+(function(){var h=location.hash||'';if(h.indexOf('type=recovery')>=0||h.indexOf('recovery')>=0){document.getElementById('csmsLoginFields').style.display='none';document.getElementById('csmsRecoveryBox').style.display='block'}})()
+</script><script>
+if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); }); }
+</script>
+<script src="/i18n.js"></script>
+<script src="/lang.js"></script>
+<script>
+window.__SX_DICT_OR__ = {
+  "CSMS Login & Control Hub": "CSMS ଲଗଇନ ଏବଂ ନିୟନ୍ତ୍ରଣ ହବ",
+  "CSMS Login": "CSMS ଲଗଇନ",
+  "Authorized Safety Officer access": "ଅଧିକୃତ ସୁରକ୍ଷା ଅଧିକାରୀ ପ୍ରବେଶ",
+  "Officer User ID": "ଅଧିକାରୀ ୟୁଜର ID", "Password": "ପାସୱାର୍ଡ",
+  "Login to CSMS": "CSMS ରେ ଲଗଇନ କରନ୍ତୁ", "Safex Home": "Safex ହୋମ",
+  "CSMS Control Hub": "CSMS ନିୟନ୍ତ୍ରଣ ହବ",
+  "Choose a module to continue.": "ଆଗକୁ ବଢିବାକୁ ମଡ୍ୟୁଲ ଚୟନ କରନ୍ତୁ।",
+  "Return to the main safety portal": "ମୁଖ୍ୟ ସୁରକ୍ଷା ପୋର୍ଟାଲକୁ ଫେରନ୍ତୁ",
+  "CSMS Internal Audits": "CSMS ଆଭ୍ୟନ୍ତରୀଣ ଅଡିଟ",
+  "Open the Annexure #8 annual audit checklist": "Annexure #8 ବାର୍ଷିକ ଅଡିଟ ଚେକଲିଷ୍ଟ ଖୋଲନ୍ତୁ",
+  "Sign out": "ସାଇନ ଆଉଟ", "HOME": "ହୋମ"
+};
+window.__SX_DICT__ = {
+  "CSMS Login & Control Hub": "CSMS लॉगिन और कंट्रोल हब",
+  "🔐 CSMS Login": "🔐 CSMS लॉगिन",
+  "Authorized Safety Officer access": "अधिकृत सुरक्षा अधिकारी प्रवेश",
+  "Officer User ID": "अधिकारी यूज़र ID",
+  "Password": "पासवर्ड",
+  "Login to CSMS": "CSMS में लॉगिन करें",
+  "← Safex Home": "← Safex होम",
+  "CSMS Control Hub": "CSMS कंट्रोल हब",
+  "Choose a module to continue.": "आगे बढ़ने के लिए मॉड्यूल चुनें।",
+  "Safex Home": "Safex होम",
+  "Return to the main safety portal": "मुख्य सुरक्षा पोर्टल पर वापस जाएँ",
+  "CSMS Internal Audits": "CSMS आंतरिक ऑडिट",
+  "Open the Annexure #8 annual audit checklist": "Annexure #8 वार्षिक ऑडिट चेकलिस्ट खोलें",
+  "Sign out": "साइन आउट",
+  "🏠 HOME": "🏠 होम",
+  "Safex • EMVEESS Infraventures Pvt. Ltd.": "Safex • एम्वीस इंफ्रावेंचर्स प्रा. लि."
+};
+</script>
+</body></html>

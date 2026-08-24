@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>Safex Admin — OTP Code Generator</title>
+<script src="/assets/vendor/supabase.min.js"></script>
+<script src="/assets/vendor/lucide.min.js"></script>
+<script src="/assets/vendor/tailwind.global.js"></script>
+<style>body{background:#0f172a}</style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans p-4 flex items-center justify-center relative">
+    <!-- 🌐 LANGUAGE TOGGLE (top-right) -->
+    <button data-langbtn onclick="safexLang.toggle()" class="fixed top-3 right-3 z-50 bg-slate-800 border border-slate-700 text-amber-400 text-xs font-black px-3 py-2 rounded-lg hover:bg-slate-700 transition">हिन्दी</button>
+    <a href="/index.html" class="fixed top-3 left-3 z-50 bg-slate-800 border border-slate-700 text-slate-200 text-xs font-black px-3 py-2 rounded-lg hover:bg-slate-700 transition no-underline">🏠 Home</a>
+<div class="w-full max-w-sm lg:max-w-md space-y-4">
+
+    <!-- 🔐 ADMIN PIN GATE -->
+    <div id="pinGate" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div class="text-center mb-4">
+            <div class="text-3xl mb-2">🛠️</div>
+            <h1 class="text-sm font-black text-amber-400 uppercase tracking-wider">Safex Admin Console</h1>
+            <p class="text-[10px] text-slate-500 mt-1">Officer login ke liye OTP code generate karein</p>
+        </div>
+        <input id="adminPin" type="password" placeholder="Admin PIN" class="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 font-bold text-amber-300 tracking-widest text-center focus:outline-amber-500" />
+        <button onclick="verifyAdminPin()" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 text-xs font-black py-3 rounded-xl">Unlock Console</button>
+        <p id="pinError" class="hidden text-center text-[10px] text-rose-400 mt-2"></p>
+    </div>
+
+    <!-- 🎫 CODE GENERATOR -->
+    <div id="codeGate" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-black text-emerald-400 uppercase tracking-wider">🎫 OTP Generator</h2>
+                <p class="text-[9px] text-slate-500">Code officer ko phone pe bata dein — 10 min valid</p>
+            </div>
+            <button onclick="location.reload()" class="text-[10px] font-bold text-slate-500 hover:text-rose-400">Lock</button>
+        </div>
+
+        <div>
+            <label class="block text-[9px] font-black text-slate-500 uppercase mb-1">Officer chunein</label>
+            <select id="officerSelect" class="w-full text-xs bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 font-bold text-slate-200 focus:outline-emerald-500"></select>
+        </div>
+
+        <button onclick="generateCode()" id="genBtn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 text-xs font-black py-3 rounded-xl flex items-center justify-center gap-2">
+            <i data-lucide="key-round" class="w-4 h-4"></i> Generate Code
+        </button>
+
+        <div id="codeResult" class="hidden text-center bg-slate-950 border border-emerald-500/40 rounded-xl p-4">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Officer Code</p>
+            <p id="codeDisplay" class="text-4xl font-black text-emerald-400 tracking-[0.4em] mt-2">000000</p>
+            <p class="text-[9px] text-slate-500 mt-2">Officer login screen me "Admin Code" me daalein</p>
+            <p id="codeExpiry" class="text-[10px] text-amber-400 font-bold mt-2"></p>
+            <button onclick="copyCode()" class="mt-3 text-[10px] font-bold bg-slate-800 text-slate-200 px-4 py-2 rounded-lg">📋 Copy Code</button>
+        </div>
+
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+            <p class="text-[9px] font-black text-slate-500 uppercase mb-2">Recent codes (is officer ke)</p>
+            <div id="recentCodes" class="space-y-1.5 text-[10px] text-slate-400"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ixfwhxjtajmrdndhtsub.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function sha256hex(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function verifyAdminPin() {
+    const pin = document.getElementById('adminPin').value.trim();
+    const err = document.getElementById('pinError');
+    err.classList.add('hidden');
+    if (!pin) { err.innerText = 'Please enter the PIN'; err.classList.remove('hidden'); return; }
+    try {
+        const hash = await sha256hex(pin);
+        const { data: ok, error } = await _supabase.rpc('safex_verify_admin_pin', { p_client_hash: hash });
+        if (error) throw error;
+        if (!ok) { err.innerText = '❌ Wrong PIN'; err.classList.remove('hidden'); return; }
+        document.getElementById('pinGate').classList.add('hidden');
+        document.getElementById('codeGate').classList.remove('hidden');
+        await loadOfficers();
+        lucide.createIcons();
+    } catch (e) { err.innerText = 'Error: ' + e.message; err.classList.remove('hidden'); }
+}
+
+async function loadOfficers() {
+    const { data } = await _supabase.from('users_safe').select('username, full_name, role').in('login_type', ['Safety Officer', 'CSMS']).order('id');
+    const sel = document.getElementById('officerSelect');
+    sel.innerHTML = (data || []).map(function (o) {
+        return '<option value="' + o.username + '">' + o.username + ' — ' + (o.full_name || '') + ' (' + (o.role || '') + ')</option>';
+    }).join('');
+}
+
+let currentCode = '';
+let expiryTimer = null;
+async function generateCode() {
+    const officerId = document.getElementById('officerSelect').value;
+    if (!officerId) return;
+    currentCode = String(Math.floor(100000 + Math.random() * 900000));
+    const hash = await sha256hex(currentCode + '|' + officerId);
+    const expires = new Date(Date.now() + 10 * 60000).toISOString();
+    const { data, error } = await _supabase.from('vault_officer_otps').insert({
+        officer_id: officerId, email: '', otp_hash: hash, expires_at: expires, used: false
+    });
+    if (error) { alert('Could not save code: ' + error.message); return; }
+    document.getElementById('codeResult').classList.remove('hidden');
+    document.getElementById('codeDisplay').innerText = currentCode;
+    loadRecentCodes();
+    clearInterval(expiryTimer);
+    let secs = 600;
+    const el = document.getElementById('codeExpiry');
+    expiryTimer = setInterval(function () {
+        const m = Math.floor(secs / 60), s = secs % 60;
+        el.innerText = '⏱️ Valid: ' + m + ':' + String(s).padStart(2, '0') + ' (10 min)';
+        if (secs <= 0) { clearInterval(expiryTimer); el.innerText = '❌ Expired — please generate a new code'; }
+        secs--;
+    }, 1000);
+}
+
+function copyCode() {
+    navigator.clipboard.writeText(currentCode).then(function () {
+        alert('✅ Code copied: ' + currentCode);
+    }).catch(function () {
+        alert('Code: ' + currentCode + ' (please copy manually)');
+    });
+}
+
+async function loadRecentCodes() {
+    const officerId = document.getElementById('officerSelect').value;
+    // 🔐 RPC se sirf status milta hai — otp_hash client ko kabhi nahi bheja jata
+    const { data } = await _supabase.rpc('safex_recent_otp_status', { p_officer_id: officerId });
+    const el = document.getElementById('recentCodes');
+    if (!data || !data.length) { el.innerHTML = '<p class="text-slate-600">No code generated yet.</p>'; return; }
+    el.innerHTML = data.map(function (r) {
+        const st = r.used ? '✅ Used' : (r.active ? '🟢 Active' : '❌ Expired');
+        const t = r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+        return '<div class="flex justify-between"><span class="text-slate-500">' + t + '</span><span class="font-bold ' + (r.active && !r.used ? 'text-emerald-400' : 'text-slate-500') + '">' + st + '</span></div>';
+    }).join('');
+}
+
+document.getElementById('officerSelect').addEventListener('change', loadRecentCodes);
+document.getElementById('adminPin').addEventListener('keydown', function (e) { if (e.key === 'Enter') verifyAdminPin(); });
+</script>
+<script>
+    window.__SX_DICT__ = {
+        "Safex Admin Console": "Safex एडमिन कंसोल",
+        "Officer login ke liye OTP code generate karein": "ऑफिसर लॉगिन के लिए OTP कोड जनरेट करें",
+        "Admin PIN": "एडमिन PIN", "Unlock Console": "कंसोल अनलॉक करें",
+        "OTP Generator": "OTP जनरेटर", "Code officer ko phone pe bata dein — 10 min valid": "कोड ऑफिसर को फोन पर बता दें — 10 मिनट वैध",
+        "Officer chunein": "ऑफिसर चुनें", "Generate Code": "कोड जनरेट करें",
+        "Officer Code": "ऑफिसर कोड", "Officer login screen me \"Admin Code\" me daalein": "ऑफिसर लॉगिन स्क्रीन में \"Admin Code\" में डालें",
+        "Copy Code": "कोड कॉपी करें", "Recent codes (is officer ke)": "हाल के कोड (इस ऑफिसर के)",
+        "Koi code abhi tak generate nahi hua.": "अभी तक कोई कोड जनरेट नहीं हुआ।",
+        "PIN daalein": "PIN डालें", "Galat PIN": "गलत PIN",
+        "Expire ho gaya — naya code generate karein": "एक्सपायर हो गया — नया कोड जनरेट करें"
+    };
+</script>
+<script src="/i18n.js"></script>
+<script src="/lang.js"></script>
+</body>
+</html>
