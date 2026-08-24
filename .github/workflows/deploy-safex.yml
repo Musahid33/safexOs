@@ -62,4 +62,5 @@ jobs:
 
       - name: Deployment URL
         if: steps.deploy.outputs.url
-        run: echo "Live at: ${{ steps.deploy.outputs.url }}"
+              run: 'echo "Live at: ${{ steps.deploy.outputs.url }}"'
+              
