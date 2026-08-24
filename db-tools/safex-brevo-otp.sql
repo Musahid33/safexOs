@@ -17,9 +17,12 @@ CREATE TABLE IF NOT EXISTS public.vault_secrets (
 ALTER TABLE public.vault_secrets ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.vault_secrets FROM anon, authenticated;
 
+-- Legacy one-shot seed — ALREADY APPLIED TO PRODUCTION (18 Aug 2026).
+-- The real sender email was removed from the public repo on 24 Aug 2026;
+-- fill in your own Brevo sender email before re-running elsewhere.
 INSERT INTO public.vault_secrets (name, value) VALUES
   ('brevo_api_key', 'BREVO_KEY_STORED_IN_DB_VAULT_ONLY'),
-  ('brevo_sender_email', 'musahid413@gmail.com'),
+  ('brevo_sender_email', 'REPLACE_WITH_BREVO_SENDER_EMAIL'),
   ('brevo_sender_name', 'Safex Security')
 ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
 

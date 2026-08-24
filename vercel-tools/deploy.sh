@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # SafetyOS — production deploy to Vercel (project: musahidsafetyox)
+# Portable: runs from anywhere; dirs are resolved relative to this script
+# (override with SAFETYOS_DIR / VERCEL_TOOLS_DIR env vars if needed).
 set -euo pipefail
 
-APP_DIR="/home/user/safetyos"
-CLI="/home/user/vercel-tools/node_modules/.bin/vercel"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+APP_DIR="${SAFETYOS_DIR:-$REPO_ROOT/safetyos}"
+VERCEL_TOOLS_DIR="${VERCEL_TOOLS_DIR:-$SCRIPT_DIR}"
+CLI="$VERCEL_TOOLS_DIR/node_modules/.bin/vercel"
+
+[ -x "$CLI" ] || { echo "✗ Vercel CLI not found at $CLI — run: (cd $VERCEL_TOOLS_DIR && npm install)"; exit 1; }
+[ -d "$APP_DIR" ] || { echo "✗ App dir not found: $APP_DIR"; exit 1; }
 cd "$APP_DIR"
 
 echo "→ Checking Vercel auth…"

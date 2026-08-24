@@ -87,8 +87,10 @@ Reset : auth.updateUser({password}) (recovery session se)
 ## Existing users migrated (live verified)
 | Username | Full Name | Registered Email (OTP goes here) | Auth user |
 |---|---|---|---|
-| TSL-OFF-01 | Amit Verma | musahid413@gmail.com | ✅ linked |
-| TSL-OFF-02 | S. K. Mahapatra | musahid413+skm@gmail.com (Gmail alias → same inbox) | ✅ linked |
+| TSL-OFF-01 | Officer A | (in Supabase Auth — not stored in repo) | ✅ linked |
+| TSL-OFF-02 | Officer B | (Gmail alias → same inbox; not stored in repo) | ✅ linked |
+
+> 24 Aug 2026: real names/emails removed from this public repo (PII).
 
 ## Verified live
 - signInWithPassword correct → 200 session · wrong → 400 invalid_credentials

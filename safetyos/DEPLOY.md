@@ -2,18 +2,7 @@
 
 Your Vercel project name: **`musahidsafetyox`** → live URL will be **https://musahidsafetyox.vercel.app**
 
-## Option A — Fastest: let the agent deploy for you (60 seconds)
-
-1. Go to https://vercel.com/account/tokens (sign in / sign up free with GitHub or email)
-2. Click **Create Token** → any name → scope: your account → **Create**
-3. Paste the token in the chat. The agent runs:
-
-```bash
-vercel link --project musahidsafetyox
-vercel deploy --prod --yes
-```
-
-…with these environment variables (pre-configured):
+## Environment variables (all options)
 
 | Key | Value |
 |---|---|
@@ -21,24 +10,41 @@ vercel deploy --prod --yes
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-` |
 | `NEXT_PUBLIC_DEMO_MODE` | `false` |
 
-## Option B — Self-serve via GitHub (no token needed, ~5 min)
+> ⚠️ Security: the Supabase anon key is public-by-design, but **never share or
+> commit Vercel tokens, OIDC tokens, or DB passwords**. Never paste CLI tokens
+> into chat. Use browser login (`vercel login`) or a GitHub Actions secret.
 
-1. Create a free private repo on github.com (e.g. `musahidsafetyox`)
-2. On your machine (or tell the agent and use its terminal):
+## Option A — Fastest: Vercel CLI on your machine (60 seconds, no token in chat)
 
 ```bash
 cd safetyos
-git init
-git add .
-git commit -m "SafetyOS v1.0 — full PRD build"
-git branch -M main
-git remote add origin https://github.com/<you>/musahidsafetyox.git
+npm i -g vercel
+vercel login                 # opens your browser — NO token to copy/paste
+vercel link --project musahidsafetyox
+vercel env rm VERCEL_OIDC_TOKEN --prod 2>/dev/null || true   # stale OIDC tokens must not sit in env
+vercel deploy --prod --yes
+```
+
+Set the 3 environment variables above in the project settings
+(Vercel → Project → Settings → Environment Variables) or via `vercel env add`.
+
+## Option B — Self-serve via GitHub (no token needed, ~5 min)
+
+1. This repo (`safexOs`) already hosts the app — push it to your GitHub account
+   (or keep it here) and import into Vercel.
+2. On your machine:
+
+```bash
 git push -u origin main
 ```
 
-3. vercel.com → **Add New → Project** → import the repo (Vercel auto-detects Next.js)
+3. vercel.com → **Add New → Project** → import the repo (Vercel auto-detects Next.js; root dir `safetyos`)
 4. Paste the 3 environment variables from the table above
 5. Click **Deploy** → your app is live at `https://musahidsafetyox.vercel.app`
+
+> The `safex/` static PWA is deployed separately by the GitHub Actions workflow
+> (`.github/workflows/deploy-safex.yml`) using a **GitHub Actions secret**
+> `VERCEL_TOKEN` — never a token pasted anywhere else.
 
 ## After deploying — 2-minute Supabase checklist
 

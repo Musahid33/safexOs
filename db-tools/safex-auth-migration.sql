@@ -3,14 +3,22 @@
 -- Passwords: ONLY in Supabase Auth (auth.users) — users table se
 -- password/otp columns hata diye jayenge.
 -- ═══════════════════════════════════════════════════════════════
+-- ⚠️  LEGACY ONE-SHOT MIGRATION — ALREADY APPLIED TO PRODUCTION
+--    (18 Aug 2026, build safex-v78). Kept for reference only.
+--
+--    24 Aug 2026: this file previously contained a PLAINTEXT seed
+--    password and real owner email addresses. They were scrubbed from
+--    the public repo — replace every <PLACEHOLDER> below with your own
+--    values before re-running on a different database, then ROTATE all
+--    seeded passwords immediately afterwards.
 
 BEGIN;
 
 -- ── 1. users table: auth_user_id + email unique (SaaS spec) ──
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS auth_user_id uuid;
 
--- Mahapatra ke liye unique alias email (Gmail +addressing — same inbox)
-UPDATE public.users SET email = 'musahid413+skm@gmail.com' WHERE username = 'TSL-OFF-02';
+-- Second officer ke liye unique alias email (Gmail +addressing — same inbox)
+UPDATE public.users SET email = 'REPLACE_WITH_OFFICER_B_EMAIL' WHERE username = 'TSL-OFF-02';
 ALTER TABLE public.users ALTER COLUMN email SET NOT NULL;
 
 DO $$
@@ -22,32 +30,32 @@ END $$;
 
 -- ── 2. Auth user for Amit (existing) — set password via bcrypt ──
 UPDATE auth.users
-   SET encrypted_password = extensions.crypt('safex@2026', extensions.gen_salt('bf')),
+   SET encrypted_password = extensions.crypt('REPLACE_WITH_STRONG_PASSWORD', extensions.gen_salt('bf')),
        email_confirmed_at = COALESCE(email_confirmed_at, now()),
        aud = 'authenticated', role = 'authenticated',
        raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"provider":"email","providers":["email"]}'::jsonb,
        raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb),
        updated_at = now()
- WHERE email = 'musahid413@gmail.com';
+ WHERE email = 'REPLACE_WITH_OFFICER_A_EMAIL';
 
--- ── 3. Auth user for S. K. Mahapatra (new) ──
+-- ── 3. Auth user for Officer B (new) ──
 INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change, email_change_token_new, is_sso_user)
 SELECT '00000000-0000-0000-0000-000000000000'::uuid,
        gen_random_uuid(), 'authenticated', 'authenticated',
-       'musahid413+skm@gmail.com',
-       extensions.crypt('safex@2026', extensions.gen_salt('bf')),
+       'REPLACE_WITH_OFFICER_B_EMAIL',
+       extensions.crypt('REPLACE_WITH_STRONG_PASSWORD', extensions.gen_salt('bf')),
        now(),
        '{"provider":"email","providers":["email"]}'::jsonb,
-       '{"full_name":"S. K. Mahapatra"}'::jsonb,
+       '{"full_name":"REPLACE_WITH_OFFICER_B_FULL_NAME"}'::jsonb,
        now(), now(), '', '', '', '', false
-WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'musahid413+skm@gmail.com');
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'REPLACE_WITH_OFFICER_B_EMAIL');
 
 INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
 SELECT u.id, u.id,
        jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
        'email', u.email, now(), now(), now()
   FROM auth.users u
- WHERE u.email = 'musahid413+skm@gmail.com'
+ WHERE u.email = 'REPLACE_WITH_OFFICER_B_EMAIL'
    AND NOT EXISTS (SELECT 1 FROM auth.identities i WHERE i.user_id = u.id AND i.provider = 'email');
 
 -- ── 4. Link users table → auth.users ──
