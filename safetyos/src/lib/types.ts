@@ -281,7 +281,9 @@ export interface DocItem {
 export interface NotificationItem {
   id: string;
   company_id: string;
-  user: string; // "all" | role
+  user: string; // "all" | role (demo mode)
+  user_id?: string | null; // profiles.id (live mode; null = broadcast to role)
+  role?: string | null; // target role (live mode)
   title: string;
   body: string;
   type: "email" | "sms" | "browser";

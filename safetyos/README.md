@@ -34,6 +34,28 @@ npm run dev        # http://localhost:3000
 
 ---
 
+## 🔐 Before going live — IMPORTANT
+
+1. **Disable or delete the demo accounts** (`superadmin@demo.com`, `admin@demo.com`,
+   `officer@demo.com`, `supervisor@demo.com`, `employee@demo.com`, `guest@demo.com`
+   — password `demo1234`). They are seeded for evaluation only and are a real
+   backdoor if left enabled on a production project:
+   ```sql
+   delete from auth.users where email like '%@demo.com';
+   ```
+   Then re-create real users with the Auth admin API (see `db-tools/safetyos-rls-hardening.sql`).
+2. **Apply the RLS hardening migration** to any DB created before Aug 2026
+   (fixes signup privilege escalation, self role-change, unscoped updates/deletes
+   and non-tenant-scoped subscriptions):
+   ```bash
+   npm install        # in db-tools
+   PGHOST=... PGUSER=postgres PGPASSWORD=... PGDATABASE=postgres \
+     node run-sql.js ../db-tools/safetyos-rls-hardening.sql
+   ```
+3. **Be careful with client uploads** — Vercel CLI credentials must never be
+   committed; keep `.env.local` (and any `~/.vercel` / `.local` auth files) out of git.
+4. **Security headers** ship via `vercel.json` for both apps (static PWA + Next.js).
+
 ## 🔌 Supabase connection — LIVE (configured)
 
 This build is wired to your Supabase project. **`.env.local` currently has `NEXT_PUBLIC_DEMO_MODE=false` → live mode.**

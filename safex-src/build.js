@@ -14,8 +14,10 @@ const crypto = require('crypto');
 const { minify: minifyJs } = require('terser');
 const { minify: minifyHtml } = require('html-minifier-terser');
 
-const SRC = '/home/user/safex-src';
-const OUT = '/home/user/safex';
+// Script-relative paths so the build works from any clone/checkout
+// (override with SAFEX_SRC / SAFEX_OUT if needed).
+const SRC = process.env.SAFEX_SRC || path.resolve(__dirname);
+const OUT = process.env.SAFEX_OUT || path.resolve(__dirname, '..', 'safex');
 
 const JS_OPTS = {
   compress: { passes: 2, drop_console: true, drop_debugger: true, dead_code: true, unsafe: false },

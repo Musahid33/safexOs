@@ -51,7 +51,7 @@ create table if not exists companies (
 create table if not exists profiles (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null unique references auth.users(id) on delete cascade,
-  company_id    uuid not null references companies(id),
+  company_id    uuid references companies(id),  -- NULL until an admin assigns a tenant
   role          app_role not null default 'employee',
   full_name     text not null,
   phone         text,
@@ -76,6 +76,22 @@ returns app_role
 language sql stable security definer set search_path = public
 as $$
   select p.role from profiles p where p.user_id = auth.uid() and p.deleted_at is null
+$$;
+
+-- Helper: platform / tenant admins (powerful: can change roles, hard-delete)
+create or replace function app.is_admin()
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select app.current_role() in ('super_admin','company_admin')
+$$;
+
+-- Helper: staff who may edit tenant records (admins + officers + supervisors)
+create or replace function app.can_edit_tenant()
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select app.current_role() in ('super_admin','company_admin','safety_officer','supervisor')
 $$;
 
 -- ────────────────────────────────────────────────────────────
@@ -637,20 +653,17 @@ create table if not exists subscriptions (
 
 create or replace function app.is_company_admin()
 returns boolean language sql stable security definer set search_path = public as $$
-  select app.current_role() in ('super_admin','company_admin','safety_officer')
+  select app.current_role() in ('super_admin','company_admin')
 $$;
 
 -- Helper that applies the standard tenant policy set to a table
+-- Writes are role-gated: staff (admins/officers/supervisors) may edit;
+-- employees/guests may only read (and, on report tables, insert).
 do $$ declare t text;
 begin
+  -- Tables any authenticated employee may insert into (reporting flow)
   foreach t in array array[
-    'departments','contractors','locations','vendors','employees',
-    'employee_documents','employee_trainings','employee_medical',
-    'employee_violations','employee_rewards','capas','near_misses',
-    'hazards','incidents','incident_investigations','grievances',
-    'training_programs','training_sessions','training_nominations',
-    'ppe_catalog','ppe_issues','ppe_stock','vehicle_inspections',
-    'tool_inspections','audits','audit_findings','documents'
+    'near_misses','hazards','grievances','documents'
   ]
   loop
     execute format('alter table %I enable row level security', t);
@@ -660,33 +673,76 @@ begin
     execute format('drop policy if exists "tenant delete" on %I', t);
     execute format($f$
       create policy "tenant select" on %1$I for select
-        using (company_id = app.current_company_id() and deleted_at is null);
+        using (deleted_at is null and (company_id = app.current_company_id() or app.current_role() = 'super_admin'));
     $f$, t);
     execute format($f$
       create policy "tenant insert" on %1$I for insert
-        with check (company_id = app.current_company_id());
+        with check (company_id = app.current_company_id() or app.current_role() = 'super_admin');
     $f$, t);
     execute format($f$
       create policy "tenant update" on %1$I for update
-        using (company_id = app.current_company_id())
-        with check (company_id = app.current_company_id());
+        using ((company_id = app.current_company_id() or app.current_role() = 'super_admin') and app.can_edit_tenant())
+        with check (company_id = app.current_company_id() or app.current_role() = 'super_admin');
     $f$, t);
     execute format($f$
       create policy "tenant delete" on %1$I for delete
-        using (company_id = app.current_company_id() and app.is_company_admin());
+        using ((company_id = app.current_company_id() or app.current_role() = 'super_admin') and app.is_company_admin());
+    $f$, t);
+  end loop;
+
+  -- Staff-only tables (master data, incidents, audits, inspections, …)
+  foreach t in array array[
+    'departments','contractors','locations','vendors','employees',
+    'employee_documents','employee_trainings','employee_medical',
+    'employee_violations','employee_rewards','capas','incidents',
+    'incident_investigations','training_programs','training_sessions',
+    'training_nominations','ppe_catalog','ppe_issues','ppe_stock',
+    'vehicle_inspections','tool_inspections','audits','audit_findings'
+  ]
+  loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists "tenant select" on %I', t);
+    execute format('drop policy if exists "tenant insert" on %I', t);
+    execute format('drop policy if exists "tenant update" on %I', t);
+    execute format('drop policy if exists "tenant delete" on %I', t);
+    execute format($f$
+      create policy "tenant select" on %1$I for select
+        using (deleted_at is null and (company_id = app.current_company_id() or app.current_role() = 'super_admin'));
+    $f$, t);
+    execute format($f$
+      create policy "tenant insert" on %1$I for insert
+        with check (app.can_edit_tenant() and (company_id = app.current_company_id() or app.current_role() = 'super_admin'));
+    $f$, t);
+    execute format($f$
+      create policy "tenant update" on %1$I for update
+        using ((company_id = app.current_company_id() or app.current_role() = 'super_admin') and app.can_edit_tenant())
+        with check (app.can_edit_tenant() and (company_id = app.current_company_id() or app.current_role() = 'super_admin'));
+    $f$, t);
+    execute format($f$
+      create policy "tenant delete" on %1$I for delete
+        using ((company_id = app.current_company_id() or app.current_role() = 'super_admin') and app.is_company_admin());
     $f$, t);
   end loop;
 end $$;
 
--- Profiles: users see their own profile + colleagues in same tenant.
+-- Profiles: users see their own profile + colleagues in same tenant;
+-- super admin sees everyone.
 alter table profiles enable row level security;
 create policy "profiles select" on profiles for select
-  using (company_id = app.current_company_id() or user_id = auth.uid());
+  using (company_id = app.current_company_id() or user_id = auth.uid() or app.current_role() = 'super_admin');
 create policy "profiles insert" on profiles for insert
   with check (company_id = app.current_company_id());
+-- Self-service edits may update name/phone only: role & company stay locked.
+-- Company admins may change profiles within their own tenant; super admin anywhere.
 create policy "profiles update" on profiles for update
-  using (user_id = auth.uid() or app.is_company_admin())
-  with check (company_id = app.current_company_id());
+  using (user_id = auth.uid() or app.is_admin())
+  with check (
+    (user_id = auth.uid()
+      and role = (select p.role from profiles p where p.user_id = auth.uid())
+      and company_id = (select p.company_id from profiles p where p.user_id = auth.uid()))
+    or app.current_role() = 'super_admin'
+    or (app.current_role() = 'company_admin' and company_id = app.current_company_id())
+  );
 
 -- Companies: super admins manage; everyone reads their own tenant row.
 alter table companies enable row level security;
@@ -717,10 +773,21 @@ create policy "logs insert" on activity_logs for insert
 alter table plans enable row level security;
 create policy "plans public" on plans for select using (true);
 
+-- Subscriptions: company admins manage their OWN tenant; super admin all.
 alter table subscriptions enable row level security;
-create policy "subs manage" on subscriptions for all
-  using (app.current_role() in ('super_admin','company_admin'))
-  with check (app.current_role() in ('super_admin','company_admin'));
+create policy "subs select" on subscriptions for select
+  using (app.current_role() = 'super_admin' or company_id = app.current_company_id());
+create policy "subs insert" on subscriptions for insert
+  with check (app.current_role() = 'super_admin'
+    or (app.current_role() = 'company_admin' and company_id = app.current_company_id()));
+create policy "subs update" on subscriptions for update
+  using (app.current_role() = 'super_admin'
+    or (app.current_role() = 'company_admin' and company_id = app.current_company_id()))
+  with check (app.current_role() = 'super_admin'
+    or (app.current_role() = 'company_admin' and company_id = app.current_company_id()));
+create policy "subs delete" on subscriptions for delete
+  using (app.current_role() = 'super_admin'
+    or (app.current_role() = 'company_admin' and company_id = app.current_company_id()));
 
 -- ═══════════════════════════════════════════════════════════════
 --  AUDIT TRIGGER — writes activity_logs on every DML
@@ -794,9 +861,11 @@ begin
 end $$;
 
 -- ═══════════════════════════════════════════════════════════════
---  SIGNUP TRIGGER — auto-create profile when a user signs up
---  Reads role + company from raw_user_meta_data:
---    { "full_name": "Karthik Selvam", "role": "safety_officer", "company_slug": "emveess" }
+--  SIGNUP TRIGGER — auto-create profile when a user is created
+--  Role + company are read from raw_app_meta_data only (server-set by
+--  the Auth admin API). Client-supplied raw_user_meta_data is NEVER
+--  trusted for privileges — self-signups get role 'employee' and no
+--  tenant until an admin assigns one.
 -- ═══════════════════════════════════════════════════════════════
 create or replace function app.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -804,17 +873,28 @@ declare
   _company uuid;
   _role app_role;
 begin
-  select id into _company from companies
-    where slug = coalesce(new.raw_user_meta_data->>'company_slug', 'emveess')
-    and deleted_at is null
-    limit 1;
-
+  -- SECURITY: role/company must NEVER come from client-controlled
+  -- raw_user_meta_data (self-signup). They are read from
+  -- raw_app_meta_data, which only the Auth server / admin API sets.
+  _role := 'employee';
   begin
-    _role := coalesce((new.raw_user_meta_data->>'role')::app_role, 'employee');
+    _role := coalesce((new.raw_app_meta_data->>'role')::app_role, 'employee');
   exception when others then
     _role := 'employee';
   end;
 
+  _company := null;
+  begin
+    select id into _company from companies
+      where slug = new.raw_app_meta_data->>'company_slug'
+      and deleted_at is null
+      limit 1;
+  exception when others then
+    _company := null;
+  end;
+
+  -- No company assigned → user is created without tenant access until an
+  -- admin assigns company_id + role (profiles UPDATE via admin or SQL).
   insert into profiles (user_id, company_id, role, full_name, designation)
   values (
     new.id,

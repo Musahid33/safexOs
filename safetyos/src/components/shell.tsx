@@ -189,7 +189,7 @@ function NotificationsBell() {
   }, []);
   if (!user) return null;
   const notifs = forCompany(db.notifications, user.companyId)
-    .filter((n) => n.user === "all" || user.role === "safety_officer" || user.role === "company_admin" || user.role === "super_admin")
+    .filter((n) => n.user === "all" || n.user_id == null || ["safety_officer", "company_admin", "super_admin"].includes(user.role))
     .slice(0, 6);
   const unread = notifs.filter((n) => !n.read).length;
 

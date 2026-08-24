@@ -59,6 +59,8 @@ const config: Config = {
         card: "0 8px 24px rgba(15, 23, 42, 0.07)",
         "card-lg": "0 16px 40px rgba(15, 23, 42, 0.12)",
         glow: "0 0 0 1px rgba(37,99,235,0.25), 0 8px 32px rgba(37,99,235,0.25)",
+        glass: "0 8px 32px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255,255,255,0.60)",
+        "glass-lg": "0 16px 48px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255,255,255,0.70)",
       },
       keyframes: {
         "fade-up": {

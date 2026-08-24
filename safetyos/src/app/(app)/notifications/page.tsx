@@ -21,7 +21,7 @@ export default function NotificationsPage() {
     if (user) {
       setNotifs(
         forCompany(db.notifications, user.companyId).filter(
-          (n) => n.user === "all" || ["safety_officer", "company_admin", "super_admin"].includes(user.role)
+          (n) => n.user === "all" || n.user_id == null || ["safety_officer", "company_admin", "super_admin"].includes(user.role)
         )
       );
     }
