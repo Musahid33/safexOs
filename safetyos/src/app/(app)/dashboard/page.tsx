@@ -15,6 +15,7 @@ import { Badge, Card, PageHeader, StatCard } from "@/components/ui";
 import { Donut, HeatMap, TrendChart, Bars } from "@/components/charts";
 import { fmtDate, fmtNum, monthKey, monthLabel, badgeTone } from "@/lib/utils";
 import { RecentTable } from "@/components/module-kit";
+import { isNmClosed } from "@/lib/near-miss-workflow";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -78,9 +79,20 @@ export default function DashboardPage() {
     return { locs, data };
   }, [nm, hz, inc]);
 
+  const nmPipeline = useMemo(() => {
+    const p = {
+      new: nm.filter((n) => n.status === "NEW").length,
+      investigation: nm.filter((n) => n.status === "UNDER INVESTIGATION").length,
+      rca: nm.filter((n) => n.status === "RCA COMPLETED").length,
+      closed: nm.filter((n) => isNmClosed(n.status)).length,
+      rejected: nm.filter((n) => n.status === "REJECTED").length,
+    };
+    return p;
+  }, [nm]);
+
   const openActions = useMemo(() => {
     const rows: any[] = [
-      ...nm.filter((n) => n.status !== "Closed" && n.status !== "Verified").map((n) => ({
+      ...nm.filter((n) => !["CLOSED", "Closed", "Verified", "REJECTED"].includes(n.status)).map((n) => ({
         id: n.id, kind: "Near Miss", title: n.report_number + " — " + n.category,
         meta: n.severity + " · " + fmtDate(n.date), status: n.status, tone: badgeTone(n.severity), href: "/near-misses/" + n.id,
       })),
@@ -159,6 +171,29 @@ export default function DashboardPage() {
           <p className="text-[11px] text-ink-400">{stats.pendingActions} pending actions</p>
         </Card>
       </div>
+
+      {/* Near miss workflow pipeline — updates automatically */}
+      <Card className="mt-4 !p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-bold text-ink-800 dark:text-ink-100">Near miss pipeline</p>
+          <button onClick={() => router.push("/near-misses")} className="text-[11px] font-semibold text-brand-600 hover:underline dark:text-brand-300">Open near misses →</button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {[
+            { label: "NEW", value: nmPipeline.new, tone: "bg-sky-500" },
+            { label: "UNDER INVESTIGATION", value: nmPipeline.investigation, tone: "bg-violet-500" },
+            { label: "RCA COMPLETED", value: nmPipeline.rca, tone: "bg-blue-500" },
+            { label: "CLOSED", value: nmPipeline.closed, tone: "bg-emerald-500" },
+            { label: "REJECTED", value: nmPipeline.rejected, tone: "bg-rose-500" },
+          ].map((p) => (
+            <div key={p.label} className="rounded-xl bg-ink-50/80 p-3 text-center dark:bg-ink-800/60">
+              <div className={`mx-auto mb-1.5 h-1.5 w-8 rounded-full ${p.tone}`} />
+              <p className="text-lg font-extrabold text-ink-900 dark:text-white">{p.value}</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-ink-400">{p.label}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Charts row */}
       <div className="mt-4 grid gap-3 lg:grid-cols-3">

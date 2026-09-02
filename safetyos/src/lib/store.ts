@@ -171,15 +171,33 @@ const NM_SEVERITY: NearMiss["severity"][] = ["Low", "Medium", "High", "Critical"
 function makeNearMisses(companyId: string, count: number, seedOffset: number): NearMiss[] {
   const rows: NearMiss[] = [];
   const locs = LOCATIONS[companyId];
+  const investigators = ["Karthik Selvam", "Mahesh Rao", "Deepa Nair"];
   for (let i = 0; i < count; i++) {
     const date = rndDate(2026, 1, 2026, 8);
     const severity = NM_SEVERITY[Math.min(3, Math.floor(Math.random() * 4.2))];
-    const closed = Math.random() < 0.55;
     const cat = NM_CATEGORIES[(i + seedOffset) % NM_CATEGORIES.length];
+    const idx = i + seedOffset;
+    // Deterministic spread: new → under investigation → RCA done → closed → rejected
+    const phase = idx % 5;
+    const status: NearMiss["status"] =
+      phase === 0 ? "NEW" :
+      phase === 1 ? "UNDER INVESTIGATION" :
+      phase === 2 ? "RCA COMPLETED" :
+      phase === 3 ? "CLOSED" : "REJECTED";
+    const investigator = investigators[(i + seedOffset) % investigators.length];
+    const whys = [
+      { why: "Why did the near miss occur?", answer: "A potential " + cat.toLowerCase() + " condition was present at the workstation." },
+      { why: "Why was the condition present?", answer: "Routine housekeeping and pre-task checks were not performed for the area." },
+      { why: "Why were the checks not performed?", answer: "The task checklist does not include this area and no owner was assigned." },
+      { why: "Why is there no owner?", answer: "Responsibility matrix was not updated after the last shift reorganisation." },
+      { why: "Why was the matrix not updated? (root cause)", answer: "No management-of-change process for shift roster changes; inadequate hazard awareness and lack of periodic inspection." },
+    ];
+    const investigated = phase === 2 || phase === 3;
+    const haveReports = phase === 3;
     rows.push({
       id: companyId + "-nm-" + (i + 1),
       company_id: companyId,
-      report_number: "NM-" + (2026) + "-" + String(seedOffset + i + 1).padStart(4, "0"),
+      report_number: "NM-" + (2026) + "-" + String(idx + 1).padStart(4, "0"),
       date,
       time: String(6 + Math.floor(Math.random() * 16)).padStart(2, "0") + ":" + String(Math.floor(Math.random() * 60)).padStart(2, "0"),
       location: rnd(locs),
@@ -189,20 +207,46 @@ function makeNearMisses(companyId: string, count: number, seedOffset: number): N
       category: cat,
       severity,
       photos: ["p1", "p2"].slice(0, Math.random() < 0.6 ? 2 : 1),
-      root_cause: closed ? "Inadequate hazard awareness and lack of periodic housekeeping inspection at the location." : "",
-      corrective_action: closed ? "Area cleaned and re-inspected; signage installed." : "",
-      preventive_action: closed ? "Weekly housekeeping audit added to supervisor checklist." : "",
-      capa_id: closed ? companyId + "-capa-" + (i + 1) : null,
-      status: closed ? (Math.random() < 0.5 ? "Closed" : "Verified") : Math.random() < 0.5 ? "Open" : Math.random() < 0.5 ? "Under Review" : "CAPA Pending",
-      assigned_to: rnd(["Karthik Selvam", "Mahesh Rao", "Deepa Nair"]),
-      officer_remarks: closed ? "Root cause verified. CAPA closed after effectiveness check." : "",
+      status,
+      assigned_to: phase === 0 ? "" : investigator,
+      immediate_action: phase >= 1 || phase === 4 ? "Area barricaded, work stopped and shift supervisor informed immediately." : "",
+      root_cause: investigated ? whys[4].answer : phase === 4 ? "No root cause — report was not a valid near miss." : "",
+      five_whys: investigated ? whys : phase === 1 ? whys.slice(0, 2) : [],
+      corrective_action: investigated ? "Work area re-inspected; responsibility matrix updated and signage installed." : "",
+      preventive_action: investigated ? "Weekly housekeeping audit added to supervisor checklist; MOC process for roster changes introduced." : "",
+      responsible_person: investigated ? "Mahesh Rao" : "",
+      target_date: investigated ? rndDate(2026, 9, 2026, 12) : "",
+      evidence: investigated
+        ? [
+            { label: "Site inspection checklist", type: "pdf", name: "inspection-checklist.pdf", size: 184320, url: "blob:seed" },
+            { label: "Shift log extract", type: "doc", name: "shift-log.pdf", size: 92160, url: "blob:seed" },
+          ]
+        : [],
+      report_documents: haveReports
+        ? [
+            { name: "NM-2026-" + String(idx + 1).padStart(4, "0") + ".pdf", format: "pdf", path: "Near Miss/2026/" + ["July", "August"][idx % 2] + "/NM-2026-" + String(idx + 1).padStart(4, "0") + ".pdf", url: "#", saved_at: new Date().toISOString() },
+            { name: "NM-2026-" + String(idx + 1).padStart(4, "0") + ".docx", format: "docx", path: "Near Miss/2026/" + ["July", "August"][idx % 2] + "/NM-2026-" + String(idx + 1).padStart(4, "0") + ".docx", url: "#", saved_at: new Date().toISOString() },
+          ]
+        : [],
+      rejection_reason: phase === 4 ? "No safety exposure — duplicate of an existing observation log entry." : "",
+      capa_id: investigated ? companyId + "-capa-" + (i + 1) : null,
+      officer_remarks: investigated ? "Root cause verified. CAPA closed after effectiveness check." : "",
       timeline: [
         { date: date, event: "Reported", note: "Near miss reported via mobile app", actor: rnd(NAMES) },
-        ...(closed
+        ...(phase >= 1
+          ? [{ date: rndDate(2026, 1, 2026, 8), event: "Accepted", note: "Accepted for investigation by safety officer", actor: investigator }]
+          : []),
+        ...(phase === 2 || phase === 3
+          ? [{ date: rndDate(2026, 2, 2026, 8), event: "RCA completed", note: "Root cause analysis completed — 5 why", actor: investigator }]
+          : []),
+        ...(haveReports
           ? [
-              { date: rndDate(2026, 1, 2026, 8), event: "Investigated", note: "Root cause analysis completed", actor: "Karthik Selvam" },
-              { date: rndDate(2026, 2, 2026, 8), event: "CAPA Closed", note: "Corrective & preventive actions verified", actor: "Karthik Selvam" },
+              { date: rndDate(2026, 3, 2026, 8), event: "Approved & closed", note: "Safety officer approved; report generated (PDF + DOCX)", actor: "Karthik Selvam" },
+              { date: rndDate(2026, 3, 2026, 8), event: "Report generated", note: "Near Miss Investigation Report saved to CSMS Documents", actor: "System" },
             ]
+          : []),
+        ...(phase === 4
+          ? [{ date: rndDate(2026, 2, 2026, 8), event: "Rejected", note: "No safety exposure — duplicate observation", actor: "Karthik Selvam" }]
           : []),
       ],
     });
@@ -757,7 +801,7 @@ export function tenantStats(companyId: string) {
   const inc = forCompany(db.incidents, companyId);
   const openCapa = forCompany(db.capas, companyId).filter((c) => c.status !== "Closed");
   const pending = [
-    ...nm.filter((n) => n.status !== "Closed" && n.status !== "Verified"),
+    ...nm.filter((n) => !["CLOSED", "Closed", "Verified", "REJECTED"].includes(n.status)),
     ...hz.filter((h) => h.status !== "Closed" && h.status !== "Mitigated"),
     ...inc.filter((i) => i.status !== "Closed"),
   ];

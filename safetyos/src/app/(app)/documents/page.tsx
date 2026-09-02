@@ -19,7 +19,27 @@ const CATS: { key: DocItem["category"]; tone: string; icon: React.ReactNode }[] 
   { key: "Policy", tone: "violet", icon: <FileText className="h-4 w-4" /> },
   { key: "Manual", tone: "emerald", icon: <FileText className="h-4 w-4" /> },
   { key: "Training Material", tone: "sky", icon: <FileText className="h-4 w-4" /> },
+  { key: "Near Miss Report", tone: "amber", icon: <FileText className="h-4 w-4" /> },
 ];
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** CSMS tree: Near Miss → {year} → {month} → files */
+function csmsTree(docs: DocItem[]) {
+  const reports = docs.filter((d) => d.category === "Near Miss Report");
+  const tree = new Map<string, Map<string, DocItem[]>>();
+  reports.forEach((d) => {
+    const folder = d.folder || "";
+    const m = folder.match(/Near Miss\/(\d{4})\/([A-Za-z]+)/);
+    const year = m?.[1] ?? "2026";
+    const month = m?.[2] ?? MONTHS[new Date(d.issued || Date.now()).getMonth()];
+    if (!tree.has(year)) tree.set(year, new Map());
+    const months = tree.get(year)!;
+    if (!months.has(month)) months.set(month, []);
+    months.get(month)!.push(d);
+  });
+  return tree;
+}
 
 export default function DocumentsPage() {
   const { company } = useAuth();
@@ -63,6 +83,38 @@ export default function DocumentsPage() {
         <StatCard label="Total Downloads" value={stats.downloads} tone="emerald" />
       </div>
 
+      <Card className="mb-4">
+        <p className="mb-3 flex items-center gap-1.5 text-sm font-bold text-ink-800 dark:text-ink-100">
+          <FolderOpen className="h-4 w-4 text-brand-500" /> CSMS Documents
+        </p>
+        <div className="rounded-xl bg-ink-50/60 p-4 text-xs dark:bg-ink-900/40">
+          <p className="font-semibold text-ink-700 dark:text-ink-200">📁 CSMS Documents</p>
+          <p className="ml-5 font-semibold text-ink-600 dark:text-ink-300">└── 📁 Near Miss</p>
+          {(() => {
+            const tree = csmsTree(docs);
+            if (!tree.size) return <p className="ml-10 text-ink-400">└── (auto-saved here when a near miss is closed &amp; report generated)</p>;
+            return Array.from(tree.entries()).map(([year, months]) => (
+              <div key={year}>
+                <p className="ml-10 font-medium text-ink-600 dark:text-ink-300">└── 📁 {year}</p>
+                {Array.from(months.entries()).map(([month, files]) => (
+                  <div key={month}>
+                    <p className="ml-15 pl-5 font-medium text-ink-600 dark:text-ink-300">└── 📁 {month}</p>
+                    <div className="ml-15 pl-10 space-y-1">
+                      {files.map((f) => (
+                        <a key={f.id} href={f.file_url || "#"} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-1.5 text-brand-700 hover:underline dark:text-brand-300">
+                          {f.title.includes("(PDF)") ? <FileText className="h-3 w-3 text-rose-500" /> : <FileText className="h-3 w-3 text-sky-500" />}
+                          {f.title.split(" — ")[1]?.split(" (")[0] || f.title}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ));
+          })()}
+        </div>
+      </Card>
+
       <Card>
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <input
@@ -99,7 +151,7 @@ export default function DocumentsPage() {
                 <div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-2.5 dark:border-ink-700/60">
                   <span className="text-[10px] text-ink-400">Issued {fmtDate(d.issued)} · Review {fmtDate(d.review_due)}</span>
                   <button
-                    onClick={() => { setToast("Downloading " + d.title + " (demo)"); setTimeout(() => setToast(null), 2200); }}
+                    onClick={() => { if (d.file_url) window.open(d.file_url, "_blank"); else { setToast("Downloading " + d.title + " (demo)"); setTimeout(() => setToast(null), 2200); } }}
                     className="flex items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100 hover:bg-brand-700"
                   >
                     <Download className="h-3 w-3" /> Download

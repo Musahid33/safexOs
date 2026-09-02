@@ -128,6 +128,7 @@ export function photoPlaceholder(label: string, hue?: number): string {
 // ── Misc ─────────────────────────────────────────────────────
 export const statusColors: Record<string, string> = {
   Open: "sky", "Under Review": "violet", "CAPA Pending": "amber", Closed: "emerald", Verified: "emerald",
+  NEW: "sky", "UNDER INVESTIGATION": "violet", "RCA COMPLETED": "blue", CLOSED: "emerald", REJECTED: "rose",
   "In Progress": "blue", Mitigated: "emerald", "Under Investigation": "violet", "Investigation Done": "blue",
   Acknowledged: "sky", "In Action": "amber", Resolved: "emerald", Scheduled: "sky", Completed: "emerald",
   Cancelled: "rose", Issued: "blue", Returned: "ink", Replaced: "amber", Expired: "rose",
