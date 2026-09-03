@@ -17,7 +17,7 @@ Your Vercel project name: **`musahidsafetyox`** → live URL will be **https://m
 ## Option A — Fastest: Vercel CLI on your machine (60 seconds, no token in chat)
 
 ```bash
-cd safetyos
+cd .
 npm i -g vercel
 vercel login                 # opens your browser — NO token to copy/paste
 vercel link --project musahidsafetyox

@@ -3,8 +3,6 @@
   "name": "safex",
   "framework": "nextjs",
   "regions": ["bom1"],
-  "buildCommand": "cd safetyos && npm ci && npm run build",
-  "outputDirectory": "safetyos/.next",
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://ixfwhxjtajmrdndhtsub.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-",
@@ -23,7 +21,8 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "geolocation=(), payment=(), usb=(), camera=(self), microphone=(self), autoplay=(self)" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" }
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-XSS-Protection", "value": "0" }
       ]
     },
     {

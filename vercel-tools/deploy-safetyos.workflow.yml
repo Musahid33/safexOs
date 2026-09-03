@@ -14,7 +14,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "safetyos/**"
+      - "src/**"
+      - "supabase/**"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/deploy-safetyos.yml"
   workflow_dispatch:
 
@@ -24,7 +27,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy safetyos/ to Vercel (production)
+    name: Deploy SafetyOS to Vercel (production)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -37,7 +40,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: safetyos/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Verify VERCEL_TOKEN secret exists
         env:
@@ -50,12 +53,10 @@ jobs:
           echo "VERCEL_TOKEN is present."
 
       - name: Install dependencies
-        working-directory: safetyos
         run: npm ci
 
       - name: Deploy to production
         id: deploy
-        working-directory: safetyos
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |

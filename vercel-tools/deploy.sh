@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_DIR="${SAFETYOS_DIR:-$REPO_ROOT/safetyos}"
+APP_DIR="${SAFETYOS_DIR:-$REPO_ROOT}"
 VERCEL_TOOLS_DIR="${VERCEL_TOOLS_DIR:-$SCRIPT_DIR}"
 CLI="$VERCEL_TOOLS_DIR/node_modules/.bin/vercel"
 

@@ -1,11 +1,34 @@
 {
-  "name": "safexos-monorepo",
+  "name": "safetyos",
   "version": "1.0.0",
   "private": true,
-  "description": "SafexOS monorepo root — Vercel builds run the SafetyOS Next.js app in safetyos/",
+  "description": "SafetyOS — Multi-Tenant HSE Management SaaS Platform",
   "scripts": {
-    "build": "cd safetyos && npm ci && npm run build",
-    "start": "cd safetyos && npm run start",
-    "dev": "cd safetyos && npm run dev"
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "docx": "^9.7.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "lucide-react": "^0.474.0",
+    "next": "^15.1.6",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   }
 }
