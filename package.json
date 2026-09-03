@@ -1,0 +1,11 @@
+{
+  "name": "safexos-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SafexOS monorepo root — Vercel builds run the SafetyOS Next.js app in safetyos/",
+  "scripts": {
+    "build": "cd safetyos && npm ci && npm run build",
+    "start": "cd safetyos && npm run start",
+    "dev": "cd safetyos && npm run dev"
+  }
+}
