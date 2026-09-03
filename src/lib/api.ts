@@ -80,6 +80,10 @@ function mapRow(table: string, r: any): any {
         department: lkName(L.departments, r.department_id),
         employee_name: lkName(L.employees, r.employee_id),
         assigned_to: lkName(L.profiles, r.assigned_to),
+        five_whys: r.five_whys ?? [],
+        evidence: r.evidence ?? [],
+        report_documents: r.report_documents ?? [],
+        responsible_person: r.responsible_person ?? "",
       };
     case "hazards":
       return {
@@ -143,6 +147,12 @@ function mapRow(table: string, r: any): any {
       return { ...r, type: r.channel ?? "browser" };
     case "capas":
       return { ...r, owner: lkName(L.profiles, r.owner_id) };
+    case "documents":
+      return {
+        ...r,
+        issued: r.issued_date ?? r.issued,
+        review_due: r.review_due ?? "",
+      };
     default:
       return r;
   }
@@ -286,10 +296,22 @@ function toDbRow(entity: string, row: any): any {
         department_id: revId(L.departments, row.department),
         employee_id: revId(L.employees, row.employee_name),
         description: row.description, category: row.category, severity: row.severity,
-        photos: row.photos ?? [], root_cause: "", corrective_action: "", preventive_action: "",
-        capa_id: null, status: row.status ?? "Open",
+        photos: row.photos ?? [],
+        status: row.status ?? "NEW",
         assigned_to: revId(L.profiles, row.assigned_to),
-        officer_remarks: "", timeline: row.timeline ?? [],
+        immediate_action: row.immediate_action ?? "",
+        root_cause: row.root_cause ?? "",
+        five_whys: row.five_whys ?? [],
+        corrective_action: row.corrective_action ?? "",
+        preventive_action: row.preventive_action ?? "",
+        responsible_person: row.responsible_person ?? "",
+        target_date: row.target_date ?? null,
+        evidence: row.evidence ?? [],
+        report_documents: row.report_documents ?? [],
+        rejection_reason: row.rejection_reason ?? "",
+        capa_id: null,
+        officer_remarks: row.officer_remarks ?? "",
+        timeline: row.timeline ?? [],
         search_text: [row.report_number, row.category, row.description, row.location].filter(Boolean).join(" "),
       };
     case "grievances":
@@ -330,6 +352,19 @@ function toDbRow(entity: string, row: any): any {
         status: row.status ?? "Pass", remarks: row.remarks ?? "",
         inspector: revId(L.profiles, row.inspector),
       };
+    case "documents":
+      return {
+        ...base,
+        title: row.title,
+        category: row.category ?? "Manual",
+        description: row.description ?? "",
+        file_url: row.file_url ?? null,
+        version: row.version ?? "v1.0",
+        issued_date: row.issued ?? null,
+        review_due: row.review_due ?? null,
+        owner: row.owner ?? "",
+        search_text: [row.title, row.category, row.description ?? ""].filter(Boolean).join(" "),
+      };
     default:
       return row;
   }
@@ -349,10 +384,18 @@ export async function createEntity(entity: EntityKey, row: Record<string, any>):
   return row;
 }
 
+/** Maps display values (names) back to DB ids for live-mode updates. */
+function toDbPatch(entity: string, patch: Record<string, any>): Record<string, any> {
+  if (entity !== "near-misses") return patch;
+  const p = { ...patch };
+  if ("assigned_to" in p) p.assigned_to = revId(liveLookups.profiles, p.assigned_to) ?? null;
+  return p;
+}
+
 export async function updateEntity(entity: EntityKey, id: string, patch: Record<string, any>): Promise<void> {
   const sb = getSupabase();
   if (sb && SUPABASE_TABLES[entity]) {
-    const { error } = await sb.from(SUPABASE_TABLES[entity]).update(patch).eq("id", id);
+    const { error } = await sb.from(SUPABASE_TABLES[entity]).update(toDbPatch(entity, patch)).eq("id", id);
     if (error) console.error("[supabase]", error.message);
     return;
   }
@@ -405,7 +448,7 @@ export async function nextReportNumber(entity: string, companyId: string): Promi
     entity === "incidents" ? "INC" :
     entity === "hazards" ? "HZ" :
     entity === "grievances" ? "GRV" : "DOC";
-  return `${prefix}-${year}-${String(count + 1001).padStart(4, "0")}`;
+  return `${prefix}-${year}-${String(count + 1).padStart(4, "0")}`;
 }
 
 export function logActivity(companyId: string, user: string, role: string, action: string, entity: string, entityId: string) {

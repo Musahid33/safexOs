@@ -113,7 +113,7 @@ safetyos/
 │   │   └── (app)/             # authenticated shell + 25 pages
 │   │       ├── dashboard      # KPIs, trends, heat map
 │   │       ├── employees      # master + QR profile detail
-│   │       ├── near-misses    # list / report / detail (CAPA + timeline)
+│   │       ├── near-misses    # NEW → investigation (5-Why) → RCA → CLOSED + auto PDF/DOCX
 │   │       ├── hazards        # register + risk controls
 │   │       ├── incidents      # 5-Why + Fishbone + actions + evidence
 │   │       ├── grievances     # submit → act → acknowledge loop
@@ -131,9 +131,14 @@ safetyos/
 **Data access** — `src/lib/api.ts` exposes the same API in both modes:
 
 ```ts
-listEntities("near-misses", companyId, { status: "Open", q: "forklift" });
-createEntity("near-misses", row);
-updateEntity("near-misses", id, { status: "Closed" });
+listEntities("near-misses", companyId, { status: "NEW", q: "forklift" });
+createEntity("near-misses", row);            // status ← "NEW"
+updateEntity("near-misses", id, { status: "UNDER INVESTIGATION" });
+// Workflow: NEW → UNDER INVESTIGATION → RCA COMPLETED → CLOSED (or REJECTED).
+// Closing unlocks "Generate Report": builds PDF + DOCX clientside
+// (src/lib/report-generator.ts) and auto-saves both to the
+// csms-documents bucket under Near Miss/{year}/{month}/
+// (src/lib/report-saver.ts) + a "Near Miss Report" row in `documents`.
 ```
 
 ---

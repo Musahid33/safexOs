@@ -89,7 +89,7 @@ function SearchResults() {
           </select>
           <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-xl border-0 bg-ink-100/70 px-3 py-2.5 text-sm ring-1 ring-inset ring-ink-200 outline-none dark:bg-ink-800/70 dark:text-white dark:ring-ink-600/50">
             <option value="">All statuses</option>
-            {["Open", "Closed", "Under Review", "In Progress", "Verified"].map((s) => <option key={s}>{s}</option>)}
+            {["NEW", "UNDER INVESTIGATION", "RCA COMPLETED", "CLOSED", "REJECTED", "Open", "Closed", "Under Review", "In Progress", "Verified"].map((s) => <option key={s}>{s}</option>)}
           </select>
         </div>
         <p className="mt-3 text-xs text-ink-400">{total} result{total === 1 ? "" : "s"} across {groups.length} module{groups.length === 1 ? "" : "s"}</p>

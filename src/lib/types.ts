@@ -58,6 +58,31 @@ export interface Employee {
   documents: { title: string; type: string; added: string }[];
 }
 
+export type NearMissStatus =
+  | "NEW"
+  | "UNDER INVESTIGATION"
+  | "RCA COMPLETED"
+  | "CLOSED"
+  | "REJECTED"
+  // legacy/deprecated statuses kept for backward compatibility
+  | "Open" | "Under Review" | "CAPA Pending" | "Closed" | "Verified";
+
+export interface NearMissEvidence {
+  label: string;
+  type: string;   // image | pdf | doc | other
+  name: string;
+  size: number;
+  url: string;
+}
+
+export interface NearMissReportDoc {
+  name: string;       // e.g. NM-2026-0001.pdf
+  format: "pdf" | "docx";
+  path: string;       // storage/key path or object URL
+  url: string;
+  saved_at: string;   // ISO
+}
+
 export interface NearMiss {
   id: string;
   company_id: string;
@@ -71,12 +96,19 @@ export interface NearMiss {
   category: string;
   severity: "Low" | "Medium" | "High" | "Critical";
   photos: string[];
+  status: NearMissStatus;
+  assigned_to: string;          // investigator (profile name, or id in live mode)
+  immediate_action: string;
   root_cause: string;
+  five_whys: { why: string; answer: string }[];
   corrective_action: string;
   preventive_action: string;
+  responsible_person: string;
+  target_date: string;          // YYYY-MM-DD
+  evidence: NearMissEvidence[];
+  report_documents: NearMissReportDoc[];
+  rejection_reason: string;
   capa_id: string | null;
-  status: "Open" | "Under Review" | "CAPA Pending" | "Closed" | "Verified";
-  assigned_to: string;
   officer_remarks: string;
   timeline: { date: string; event: string; note: string; actor: string }[];
 }
@@ -268,7 +300,7 @@ export interface DocItem {
   id: string;
   company_id: string;
   title: string;
-  category: "SOP" | "JSA" | "HIRA" | "MSDS" | "Policy" | "Manual" | "Training Material";
+  category: "SOP" | "JSA" | "HIRA" | "MSDS" | "Policy" | "Manual" | "Training Material" | "Near Miss Report";
   description: string;
   version: string;
   issued: string;
@@ -276,6 +308,8 @@ export interface DocItem {
   owner: string;
   downloads: number;
   size: string;
+  file_url?: string;
+  folder?: string;
 }
 
 export interface NotificationItem {

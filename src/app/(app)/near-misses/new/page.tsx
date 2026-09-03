@@ -12,6 +12,8 @@ import { Button, Card, Field, Input, PageHeader, Select, Textarea, Toast } from 
 import { PhotoUpload } from "@/components/module-kit";
 import { uid } from "@/lib/utils";
 import { db, forCompany } from "@/lib/store";
+import { isSupabaseMode } from "@/lib/supabase";
+import { syncTenant } from "@/lib/sync";
 
 const CATEGORIES = ["Slip / Trip", "Falling Object", "Equipment Failure", "Vehicle Movement", "Chemical Exposure", "Fire / Smoke", "Electrical", "Ergonomic", "Housekeeping"];
 
@@ -38,14 +40,18 @@ export default function NewNearMissPage() {
       location: form.location || "Unspecified", department: form.department || "—",
       employee_name: form.employee_name || user.name,
       description: form.description, category: form.category || "Other", severity: form.severity,
-      photos, root_cause: "", corrective_action: "", preventive_action: "", capa_id: null,
-      status: "Open", assigned_to: "Karthik Selvam", officer_remarks: "",
-      timeline: [{ date: new Date().toISOString().slice(0, 10), event: "Reported", note: "Near miss reported via web app", actor: user.name }],
+      photos, status: "NEW", assigned_to: "",
+      immediate_action: "", root_cause: "", five_whys: [], corrective_action: "",
+      preventive_action: "", responsible_person: "", target_date: "",
+      evidence: [], report_documents: [], rejection_reason: "", capa_id: null,
+      officer_remarks: "",
+      timeline: [{ date: new Date().toISOString().slice(0, 10), event: "Reported", note: "Near miss report submitted (photo + description + location)", actor: user.name }],
     };
     await createEntity("near-misses", row);
     db.nearMisses.unshift(row as any);
+    if (isSupabaseMode) await syncTenant(company.id).catch(() => {});
     logActivity(company.id, user.name, user.role, "Created", "Near Miss", number);
-    setToast("Near miss " + number + " submitted ✓");
+    setToast("Near miss " + number + " submitted — status NEW ✓");
     setTimeout(() => router.push("/near-misses/" + row.id), 900);
   };
 

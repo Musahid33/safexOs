@@ -14,6 +14,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportMenu, FilterBar, KpiRow } from "@/components/module-kit";
 import { Bars, Donut } from "@/components/charts";
 import { fmtDate, monthKey, monthLabel } from "@/lib/utils";
+import { isNmClosed, isNmOpen, nmStatusMeta, NM_WORKFLOW_STEPS } from "@/lib/near-miss-workflow";
 
 export default function NearMissPage() {
   const { user, company } = useAuth();
@@ -41,8 +42,14 @@ export default function NearMissPage() {
   );
 
   const analytics = useMemo(() => {
-    const open = rows.filter((r) => r.status !== "Closed" && r.status !== "Verified").length;
-    const closed = rows.length - open;
+    const open = rows.filter((r) => isNmOpen(r.status)).length;
+    const closed = rows.filter((r) => isNmClosed(r.status)).length;
+    const rejected = rows.filter((r) => r.status === "REJECTED").length;
+    const pipeline = NM_WORKFLOW_STEPS.map((s) => ({
+      label: s,
+      value: rows.filter((r) => nmStatusMeta(r.status).step === NM_WORKFLOW_STEPS.indexOf(s) && !isNmClosed(r.status)).length,
+    }));
+    pipeline[NM_WORKFLOW_STEPS.length - 1].value = closed;
     const byCategory = Object.entries(
       rows.reduce<Record<string, number>>((a, r) => ((a[r.category] = (a[r.category] ?? 0) + 1), a), {})
     )
@@ -60,7 +67,7 @@ export default function NearMissPage() {
       return d.toISOString().slice(0, 7);
     });
     const monthly = months.map((m) => rows.filter((r) => monthKey(r.date) === m).length);
-    return { open, closed, byCategory, bySeverity, months, monthly };
+    return { open, closed, rejected, pipeline, byCategory, bySeverity, months, monthly };
   }, [rows]);
 
   return (
@@ -88,10 +95,24 @@ export default function NearMissPage() {
 
       <KpiRow items={[
         { label: "Total Reports", value: rows.length },
-        { label: "Open", value: analytics.open },
-        { label: "Closed / Verified", value: analytics.closed },
+        { label: "Active", value: analytics.open },
+        { label: "Closed", value: analytics.closed },
+        { label: "Rejected", value: analytics.rejected },
         { label: "Closure Rate", value: rows.length ? Math.round((analytics.closed / rows.length) * 100) + "%" : "—" },
       ]} />
+
+      {/* Workflow pipeline */}
+      <Card className="mt-4">
+        <p className="mb-3 text-sm font-bold text-ink-800 dark:text-ink-100">Investigation pipeline</p>
+        <div className="grid gap-2 sm:grid-cols-4">
+          {analytics.pipeline.map((p) => (
+            <div key={p.label} className="rounded-xl bg-ink-50/80 p-3 text-center dark:bg-ink-800/60">
+              <p className="text-lg font-extrabold text-ink-900 dark:text-white">{p.value}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400">{p.label}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -114,7 +135,7 @@ export default function NearMissPage() {
           />
           <FilterBar
             filters={[
-              { key: "status", label: "Status", options: ["Open", "Under Review", "CAPA Pending", "Closed", "Verified"] },
+              { key: "status", label: "Status", options: ["NEW", "UNDER INVESTIGATION", "RCA COMPLETED", "CLOSED", "REJECTED"] },
               { key: "severity", label: "Severity", options: ["Low", "Medium", "High", "Critical"] },
               { key: "category", label: "Category", options: Array.from(new Set(rows.map((r) => r.category))) },
               { key: "department", label: "Department", options: Array.from(new Set(rows.map((r) => r.department))) },

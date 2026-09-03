@@ -278,12 +278,20 @@ create table if not exists near_misses (
   category text,
   severity text not null default 'Low',
   photos jsonb not null default '[]',
+  status text not null default 'NEW',
+  -- NEW | UNDER INVESTIGATION | RCA COMPLETED | CLOSED | REJECTED
+  assigned_to uuid references profiles(id),
+  immediate_action text,
   root_cause text,
+  five_whys jsonb not null default '[]',
   corrective_action text,
   preventive_action text,
+  responsible_person text,
+  target_date date,
+  evidence jsonb not null default '[]',
+  report_documents jsonb not null default '[]',
+  rejection_reason text,
   capa_id uuid references capas(id),
-  status text not null default 'Open',
-  assigned_to uuid references profiles(id),
   officer_remarks text,
   timeline jsonb not null default '[]',
   search_text text,
@@ -294,6 +302,17 @@ create table if not exists near_misses (
   deleted_at timestamptz,
   unique (company_id, report_number)
 );
+
+-- Near-miss workflow migration for databases created before the
+-- investigation pipeline shipped (idempotent, safe to re-run).
+alter table near_misses add column if not exists immediate_action text;
+alter table near_misses add column if not exists five_whys jsonb not null default '[]';
+alter table near_misses add column if not exists responsible_person text;
+alter table near_misses add column if not exists target_date date;
+alter table near_misses add column if not exists evidence jsonb not null default '[]';
+alter table near_misses add column if not exists report_documents jsonb not null default '[]';
+alter table near_misses add column if not exists rejection_reason text;
+alter table near_misses alter column status set default 'NEW';
 
 -- ────────────────────────────────────────────────────────────
 --  HAZARDS
@@ -917,6 +936,24 @@ create trigger on_auth_user_created
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('safety-media', 'safety-media', false, 10485760, array['image/jpeg','image/png','image/webp','application/pdf'])
 on conflict (id) do nothing;
+
+-- CSMS Documents — auto-generated Near Miss investigation reports
+-- (PDF & DOCX) saved under csms-documents/{company slug}/Near Miss/{year}/{month}/
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('csms-documents', 'csms-documents', true, 10485760, array['image/jpeg','image/png','image/webp','application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/msword'])
+on conflict (id) do nothing;
+
+create policy "csms docs read" on storage.objects for select
+  using (bucket_id = 'csms-documents');
+create policy "csms docs write" on storage.objects for insert
+  with check (bucket_id = 'csms-documents'
+    and (storage.foldername(name))[1] = (select slug from companies where id = app.current_company_id()));
+create policy "csms docs update" on storage.objects for update
+  using (bucket_id = 'csms-documents'
+    and (storage.foldername(name))[1] = (select slug from companies where id = app.current_company_id()));
+create policy "csms docs delete" on storage.objects for delete
+  using (bucket_id = 'csms-documents'
+    and (storage.foldername(name))[1] = (select slug from companies where id = app.current_company_id()));
 
 create policy "tenant media read" on storage.objects for select
   using (bucket_id = 'safety-media'

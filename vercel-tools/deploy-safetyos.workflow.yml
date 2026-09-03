@@ -1,0 +1,81 @@
+name: Deploy SafetyOS (Vercel Production)
+
+# ⚠️ This is the GitHub Actions workflow for the safetyos (Next.js) app.
+# The auto-push bot cannot commit files into .github/workflows/ (it lacks the
+# `workflows` permission), so this file is version-controlled here.
+#
+# To activate it, copy/move this file to:
+#   .github/workflows/deploy-safetyos.yml
+# (or keep it here and note that .github/workflows only executes files inside
+# .github/workflows/). You can alternatively deploy without GitHub Actions:
+#   bash vercel-tools/deploy.sh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "supabase/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy-safetyos.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-safetyos-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy SafetyOS to Vercel (production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Verify VERCEL_TOKEN secret exists
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Secret VERCEL_TOKEN is not set. Add it at https://github.com/${GITHUB_REPOSITORY}/settings/secrets/actions"
+            exit 1
+          fi
+          echo "VERCEL_TOKEN is present."
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -o pipefail
+          npx --yes vercel@latest deploy --prod --yes \
+            --project musahidsafetyox \
+            --env NEXT_PUBLIC_SUPABASE_URL="https://ixfwhxjtajmrdndhtsub.supabase.co" \
+            --env NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_PaR8QjtqO9nq593ekRfg7Q_PzsOCg2-" \
+            --env NEXT_PUBLIC_DEMO_MODE="false" \
+            --token "$VERCEL_TOKEN" 2>&1 | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9][a-z0-9-]*\.vercel\.app' deploy.log | head -1 || true)
+          if [ -z "$URL" ]; then
+            echo "::warning::Could not parse deployment URL from output."
+            exit 0
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### 🚀 SafetyOS deployed to production" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deployment URL
+        if: steps.deploy.outputs.url
+        run: 'echo "Live at: ${{ steps.deploy.outputs.url }}"'
