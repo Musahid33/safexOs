@@ -90,7 +90,7 @@ inactive template; enable it only after setting its separate project variables.
 - Confirm the original homepage, officer login, employee profile and CSMS login.
 - Confirm JavaScript, icons, `/manifest.json` and `/sw.js` load without 404s.
 - Verify login and normal report flows with authorized test data.
-- Check a fresh browser and an existing installed PWA. This recovery uses `safex-v84`.
+- Check a fresh browser and an existing installed PWA. This recovery uses `safex-v85`.
 - Do not clear all site storage: pending offline reports live in localStorage. Sync or
   back them up before any user-initiated data reset. The recovery does not erase them.
 

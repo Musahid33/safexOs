@@ -5,7 +5,7 @@
    - Offline fallback page for navigation
    ═══════════════════════════════════════════════════════════ */
 // Bump this committed version for every release that changes cached content.
-const CACHE = 'safex-v84';
+const CACHE = 'safex-v85';
 const APP_SHELL = [
   '/',
   '/index.html',

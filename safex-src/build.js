@@ -130,6 +130,8 @@ const PROTECT_JS = `
   });
   var timer = null;
   function watch() {
+    // Frame geometry is not evidence of DevTools; embedded previews have a smaller viewport.
+    if (window.self !== window.top) return;
     var dw = window.outerWidth - window.innerWidth;
     var dh = window.outerHeight - window.innerHeight;
     if (dw > 240 || dh > 170) {

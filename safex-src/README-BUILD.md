@@ -20,7 +20,7 @@ created. Anti-inspection UI behavior is retained; it is not an authorization bou
 - Edit only `safex-src/`; rebuild and commit changed output under `safex/`.
 - The version in `safex-src/sw.js` is the **exact emitted version**. Increase it
   deliberately whenever a release changes cached content. The restoration release
-  is `safex-v84`, newer than the previous deployed `safex-v83`.
+  is `safex-v85`, newer than the previous deployed `safex-v83`.
 - Builds never increment or mutate source automatically. Repeated builds from the
   same source/lockfile produce identical output; `npm run check:generated` enforces it.
 - Older builds calculated an in-memory +1 without writing it back, so rerunning a

@@ -6,7 +6,8 @@
 - Default root build/deployment now selects static `safex/`, not Next.js.
 - SafetyOS, including PR #5's near-miss and PDF/DOCX features, is retained in `safetyos/`.
 - Separate deployment scripts prevent SafetyOS from targeting the original Safex project.
-- Safex release is explicitly `safex-v84`; builds are reproducible and stale output is tested.
+- Safex release is explicitly `safex-v85`; builds are reproducible and stale output is tested.
+- Embedded previews no longer misidentify iframe viewport size as open developer tools.
 - Cache cleanup preserves unrelated caches and pending offline report localStorage.
 - An enhanced CI template validates both apps and uses pinned Vercel tooling. Its
   activation is blocked by the GitHub App lacking `workflows` permission; the active

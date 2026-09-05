@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
+import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -83,4 +84,32 @@ test('navigation falls back to offline.html when request and index caches miss',
   let response;
   handlers.fetch({ request: { method: 'GET', url: 'https://example.test/missing.html', mode: 'navigate' }, respondWith: p => response = p });
   assert.equal(await response, offline);
+});
+
+
+test('embedded preview geometry does not trigger the DevTools warning overlay', () => {
+  const require = createRequire(new URL('../safex-src/package.json', import.meta.url));
+  const { JSDOM } = require('jsdom');
+  const page = new JSDOM(read('safex/offline.html'));
+  const protect = page.window.document.querySelector('script').textContent;
+  const parent = new JSDOM('<body></body>', { runScripts: 'dangerously', url: 'https://preview.test/' });
+  try {
+    const iframe = parent.window.document.createElement('iframe');
+    parent.window.document.body.appendChild(iframe);
+    const framed = iframe.contentWindow;
+    function simulateGeometry(win) {
+      Object.defineProperty(win, 'outerWidth', { value: 1500, configurable: true });
+      Object.defineProperty(win, 'innerWidth', { value: 600, configurable: true });
+      win.setInterval = fn => { fn(); return 1; };
+      win.setTimeout = fn => { fn(); return 1; };
+      win.eval(protect);
+    }
+    simulateGeometry(framed);
+    assert.doesNotMatch(framed.document.body.textContent, /Developer tools are disabled/);
+    simulateGeometry(parent.window);
+    assert.match(parent.window.document.body.textContent, /Developer tools are disabled/, 'Top-level behavior is preserved');
+  } finally {
+    parent.window.close();
+    page.window.close();
+  }
 });
