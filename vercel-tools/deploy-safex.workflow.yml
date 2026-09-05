@@ -1,0 +1,79 @@
+name: Deploy Safex (Vercel Production)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "safex/**"
+      - "safex-src/**"
+      - "safetyos/**"
+      - "scripts/**"
+      - "package*.json"
+      - "vercel.json"
+      - "vercel-tools/**"
+      - ".github/workflows/deploy-safex.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      production:
+        description: "Deploy the checked-out revision to the original Safex production project"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-safex-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate both apps before deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            safex-src/package-lock.json
+            safetyos/package-lock.json
+      - run: npm ci --prefix safex-src --include=dev --ignore-scripts
+      - run: npm test
+      - run: npm run check:generated
+      - run: npm ci --prefix safetyos --include=dev --ignore-scripts
+      - run: npm run typecheck:safetyos
+      - run: npm run build:safetyos
+
+  deploy:
+    name: Deploy the original Safex PWA
+    needs: validate
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix safex-src --include=dev --ignore-scripts
+      - run: npm ci --prefix vercel-tools --ignore-scripts
+      - name: Verify deployment access
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Configure VERCEL_TOKEN in repository Actions secrets. Never paste it in chat."
+            exit 1
+          fi
+      - name: Deploy verified static output
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: bash vercel-tools/deploy-safex.sh production
