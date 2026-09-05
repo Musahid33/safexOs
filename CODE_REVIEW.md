@@ -1,3 +1,5 @@
+> **Historical report.** Current recovery/deployment instructions are in [DEPLOY.md](DEPLOY.md) and [RESTORE-STATUS.md](RESTORE-STATUS.md). Historical live URLs and claims about credential-history cleanup are not current verification. Do not execute old force-push/reset instructions as part of frontend recovery.
+
 # 🔍 SafetyOS / Safex — Code Review & Fixes
 
 **Date:** 24 Aug 2026 · **Scope:** `safetyos/` (Next.js + Supabase SaaS), `safex-src/` → `safex/` (static PWA), `db-tools/`, `vercel-tools/`

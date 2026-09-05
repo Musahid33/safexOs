@@ -26,6 +26,9 @@ const JavaScriptObfuscator = require('javascript-obfuscator');
 // (override with SAFEX_SRC / SAFEX_OUT if needed).
 const SRC = process.env.SAFEX_SRC || path.resolve(__dirname);
 const OUT = process.env.SAFEX_OUT || path.resolve(__dirname, '..', 'safex');
+if ([path.resolve(SRC), path.resolve(__dirname, '..'), path.parse(path.resolve(OUT)).root].includes(path.resolve(OUT))) {
+  throw new Error('SAFEX_OUT must be a dedicated build directory, not the source or repository root');
+}
 
 const JS_OPTS = {
   compress: { passes: 2, drop_console: true, drop_debugger: true, dead_code: true, unsafe: false },
@@ -127,6 +130,8 @@ const PROTECT_JS = `
   });
   var timer = null;
   function watch() {
+    // Frame geometry is not evidence of DevTools; embedded previews have a smaller viewport.
+    if (window.self !== window.top) return;
     var dw = window.outerWidth - window.innerWidth;
     var dh = window.outerHeight - window.innerHeight;
     if (dw > 240 || dh > 170) {
@@ -159,12 +164,11 @@ const files = (dir) => fs.readdirSync(dir).filter(f => fs.statSync(path.join(dir
   fs.mkdirSync(path.join(OUT, 'assets', 'vendor'), { recursive: true });
   fs.mkdirSync(path.join(OUT, 'icons'), { recursive: true });
 
-  /* ── 1. cache version bump ── */
+  /* ── 1. explicit release version (reproducible; never mutate source) ── */
   let swSrc = fs.readFileSync(path.join(SRC, 'sw.js'), 'utf-8');
   const m = swSrc.match(/'safex-v(\d+)'/);
   if (!m) throw new Error('CACHE version not found in sw.js');
-  const ver = Number(m[1]) + 1;
-  swSrc = swSrc.replace(/'safex-v\d+'/, `'safex-v${ver}'`);
+  const ver = Number(m[1]);
   console.log('cache version -> safex-v' + ver);
 
   /* ── 2. icons → hashed names ── */

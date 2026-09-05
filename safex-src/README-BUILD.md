@@ -1,41 +1,42 @@
-# Safex — Production Build Pipeline
+# Safex production build
 
-**Source of truth:** this folder (`safex-src`) — readable, commented source.
-**Deploy root:** `/home/user/safex` — hardened build output only (never edit by hand).
+**Source of truth:** `safex-src/` · **generated output:** `safex/`.
+Paths are relative to this checkout, not a particular sandbox home directory.
 
-## Why a build step?
-
-- Minify + obfuscate all JS (inline & external) with Terser
-- Strip all comments, `console.*`, `debugger`
-- Hash every asset filename (content hash) for immutable caching
-- Self-host vendor libs (supabase-js, lucide, tailwind) — no runtime CDN
-- Never generate source maps
-- Security headers ship via `vercel.json`
-
-## How to build & deploy
-
-```bash
-cd /home/user/safex-src
-npm install                              # after sandbox restart
-node build.js                            # bumps SW cache version, builds to /home/user/safex
-cd /home/user/safex
-vercel deploy --prod --yes
+```sh
+# From repository root, using Node.js 22:
+npm ci --prefix safex-src --include=dev --ignore-scripts
+npm run build
+npm test
+npm run check:generated
 ```
 
-## Rules
+The builder minifies HTML/JS, obfuscates app scripts with a fixed seed, self-hosts
+vendor scripts, hashes assets, and copies production headers. No source maps are
+created. Anti-inspection UI behavior is retained; it is not an authorization boundary.
 
-1. Edit ONLY files in `safex-src`. `safex/` is regenerated.
-2. Inline `onclick="fn()"` handler names must not be renamed — Terser is configured
-   with `mangle` (locals only) for exactly this reason.
-3. Never add source maps (`sourceMap: false` in build.js).
-4. New CDN libs? Download the exact pinned version into `vendor/` and add a
-   `<script src="/assets/vendor/<name>.min.js">` tag — build.js hashes it.
-5. Cache bust: `node build.js` auto-bumps the `safex-vNN` string in `sw.js`.
+## Reproducible releases and service worker updates
+
+- Edit only `safex-src/`; rebuild and commit changed output under `safex/`.
+- The version in `safex-src/sw.js` is the **exact emitted version**. Increase it
+  deliberately whenever a release changes cached content. The restoration release
+  is `safex-v85`, newer than the previous deployed `safex-v83`.
+- Builds never increment or mutate source automatically. Repeated builds from the
+  same source/lockfile produce identical output; `npm run check:generated` enforces it.
+- Older builds calculated an in-memory +1 without writing it back, so rerunning a
+  build did not actually advance the release version. Do not rely on that behavior.
+- Activation removes only obsolete `safex-v*` caches, not unrelated app caches or
+  localStorage. Pending offline reports are not deleted.
+
+Optional `SAFEX_SRC` and `SAFEX_OUT` override paths for isolated validation. Output
+must be a dedicated directory, never the source or repository root.
 
 ## Tests
 
-`npm test` (runs `test-build-smoke.js`, jsdom harness) verifies the BUILT
-output in `/home/user/safex` — 25 checks covering the event gallery (live
-`vault_gallery` data, XSS escaping, empty state, broken-image fallback),
-reports-log status palette & confidentiality, training-check refinements, and
-the alerts badge. Run it after every build before deploying.
+The original 49 checks cover gallery escaping/rendering, report status/confidentiality,
+training, alerts, anti-inspection behavior and service-worker artifacts. Root tests add
+deployment isolation, matching headers, explicit cache versions, safe cache cleanup
+and offline navigation fallback. These are local/mocked tests, not proof of live DB/RLS.
+
+See [../DEPLOY.md](../DEPLOY.md) for deployment. Never publish the repository-root
+Next.js app to the original Safex project; SafetyOS now lives separately in `safetyos/`.

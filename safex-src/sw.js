@@ -4,7 +4,8 @@
    - Supabase REST GETs: stale-while-revalidate (last data visible offline)
    - Offline fallback page for navigation
    ═══════════════════════════════════════════════════════════ */
-const CACHE = 'safex-v82';
+// Bump this committed version for every release that changes cached content.
+const CACHE = 'safex-v85';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -29,7 +30,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('safex-v') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -66,7 +67,7 @@ self.addEventListener('fetch', (event) => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then((hit) => hit || caches.match('/index.html') || caches.match('/offline.html'))
+          caches.match(req).then(async (hit) => hit || await caches.match('/index.html') || await caches.match('/offline.html'))
         )
     );
     return;

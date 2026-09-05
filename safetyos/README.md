@@ -24,13 +24,17 @@ Multi-tenant **Health, Safety & Environment (HSE)** SaaS platform built on **Nex
 ## 🚀 Quick start
 
 ```bash
-npm install
+cd safetyos
+npm ci
 npm run dev        # http://localhost:3000
 ```
 
-**Current mode: LIVE** — connected to your Supabase project (`.env.local` → `NEXT_PUBLIC_DEMO_MODE=false`). Sign in with the accounts listed in the Supabase section below.
+Configure `safetyos/.env.local` from `.env.local.example` before live use. This
+checkout does not prove production credentials, migrations, demo-account removal or
+RLS configuration. With no Supabase configuration the app uses demo mode.
 
-> Demo mode (mock data) is one env flag away: set `NEXT_PUBLIC_DEMO_MODE=true`, restart, and use the built-in role-switcher + tenant-switcher to explore every combination.
+Deployment is separate from the original Safex PWA; see [../DEPLOY.md](../DEPLOY.md).
+Never target the Safex PWA's Vercel project with this Next.js app.
 
 ---
 
@@ -56,26 +60,13 @@ npm run dev        # http://localhost:3000
    committed; keep `.env.local` (and any `~/.vercel` / `.local` auth files) out of git.
 4. **Security headers** ship via `vercel.json` for both apps (static PWA + Next.js).
 
-## 🔌 Supabase connection — LIVE (configured)
+## 🔌 Supabase connection
 
-This build is wired to your Supabase project. **`.env.local` currently has `NEXT_PUBLIC_DEMO_MODE=false` → live mode.**
-
-- **Project:** `https://ixfwhxjtajmrdndhtsub.supabase.co` (region: ap-northeast-2)
-- **Schema:** already applied — `supabase/schema.sql` (tables, RLS, audit triggers, storage)
-- **Data:** already seeded — `supabase/seed.sql` (3 tenants + 6 demo users + sample data)
-
-### Sign in (live)
-
-| Email | Password | Role |
-|---|---|---|
-| `superadmin@demo.com` | `demo1234` | Super Admin (sees all 3 tenants) |
-| `admin@demo.com` | `demo1234` | Company Admin |
-| `officer@demo.com` | `demo1234` | Safety Officer |
-| `supervisor@demo.com` | `demo1234` | Supervisor |
-| `employee@demo.com` | `demo1234` | Employee |
-| `guest@demo.com` | `demo1234` | Guest |
-
-Verified via the live REST API: officer sees only `emveess` data (6 near misses), anonymous requests get 0 rows (RLS blocks), super admin sees all tenants. **No company can access another company's data.**
+Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
+`NEXT_PUBLIC_DEMO_MODE=false` for an authorized live deployment. Do not infer that
+a database is initialized or safe from historical README assertions. Check schema,
+RLS, tenant assignments and removal of evaluation accounts through authorized admin
+access. `supabase/seed.sql` is for evaluation, not a production restore operation.
 
 ### Where the magic happens
 
@@ -88,7 +79,7 @@ Verified via the live REST API: officer sees only `emveess` data (6 near misses)
 ### Creating real users (your own staff)
 
 1. Supabase Dashboard → Authentication → Users → **Add user**
-2. The `on_auth_user_created` trigger auto-creates their profile from metadata:
+2. The signup trigger uses server-controlled **app metadata** for role/company (never client-supplied user metadata). Set these only through authorized admin tooling:
 
 ```json
 { "full_name": "New User", "role": "safety_officer", "company_slug": "emveess" }
